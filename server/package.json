@@ -1,0 +1,35 @@
+{
+  "name": "society-subscription-management",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/index.js",
+    "dev": "concurrently \"tsc -w\" \"nodemon dist/index.js\"",
+    "db:generate": "drizzle-kit generate --schema src/db/schema.ts --dialect postgresql --out ./drizzle",
+    "db:migrate": "tsx ./src/scripts/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "drizzle-orm": "^0.45.1",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/concurrently": "^6.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.5",
+    "concurrently": "^9.2.1",
+    "drizzle-kit": "^0.31.9",
+    "nodemon": "^3.1.14",
+    "tsx": "^4.21.0"
+  }
+}
