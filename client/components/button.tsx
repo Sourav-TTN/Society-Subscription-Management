@@ -22,7 +22,7 @@ export const Button = ({
     <button
       {...props}
       className={cn(
-        "px-4 h-8 rounded-md border border-transparent bg-clip-padding text-base focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3 inline-flex items-center justify-center whitespace-nowrap transition-all outline-none disabled:pointer-events-none disabled:opacity-50 shrink-0",
+        "px-4 h-8 rounded-md border border-transparent bg-clip-padding text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3 inline-flex items-center justify-center whitespace-nowrap transition-all outline-none disabled:pointer-events-none disabled:opacity-50 shrink-0",
         variants[variant],
         className,
       )}

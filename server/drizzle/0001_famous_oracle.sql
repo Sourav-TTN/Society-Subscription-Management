@@ -1,0 +1,1 @@
+ALTER TABLE "admins" ALTER COLUMN "society_id" DROP NOT NULL;

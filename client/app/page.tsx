@@ -1,10 +1,12 @@
 import { Button } from "@/components/button";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div>
-      <p>Hey Dev</p>
-      <Button>Click</Button>
+      <Link href={"/admin/login"}>
+        <Button>Admin Login</Button>
+      </Link>
     </div>
   );
 }

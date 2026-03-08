@@ -59,9 +59,9 @@ export const adminsTable = pgTable("admins", {
   adminId: uuid("admin_id").defaultRandom().notNull().primaryKey(),
   name: text("name").notNull(),
   email: text("email").unique().notNull(),
-  societyId: uuid("society_id")
-    .notNull()
-    .references(() => societiesTable.societyId, { onDelete: "cascade" }),
+  societyId: uuid("society_id").references(() => societiesTable.societyId, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -307,7 +307,6 @@ export const notifcationsRelations = relations(
       fields: [notificationsTable.sentBy],
       references: [adminsTable.adminId],
     }),
-    notificationRecipients: many(notificationsTable),
   }),
 );
 
