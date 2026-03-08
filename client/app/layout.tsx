@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
 import "./globals.css";
+import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import { ReduxStoreProvider } from "@/providers/store-provider";
 
 const poppins = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -20,7 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={poppins.variable}>
-      <body className="font-sans bg-background">{children}</body>
+      <body className="font-sans bg-background">
+        <ReduxStoreProvider>{children}</ReduxStoreProvider>
+      </body>
     </html>
   );
 }

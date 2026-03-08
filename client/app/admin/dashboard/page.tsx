@@ -1,5 +1,11 @@
+import { AdminDashboardClientPage } from "./components/page-client";
+
 const AdminDashboardPage = () => {
-  return <div>Admin Dashboard Page</div>;
+  return (
+    <div>
+      <AdminDashboardClientPage />
+    </div>
+  );
 };
 
 export default AdminDashboardPage;

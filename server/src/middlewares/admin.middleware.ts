@@ -9,6 +9,7 @@ const getAdminMiddleware = async (
   res: Response,
   next: NextFunction,
 ) => {
+  // console.log("COOKIES:", req.cookies);
   const adminAuthCookieToken = req.cookies["admin-auth-token"];
 
   if (!adminAuthCookieToken) {

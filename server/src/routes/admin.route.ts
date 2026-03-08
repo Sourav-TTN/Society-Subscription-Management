@@ -1,7 +1,6 @@
 import express from "express";
-import passport from "passport";
 import { setAdmin } from "../lib/admin-auth.js";
-import type { AdminsSelectType } from "../db/schema.js";
+import type { AdminSelectType } from "../db/schema.js";
 import { getAdminMiddleware } from "../middlewares/admin.middleware.js";
 
 const route = express.Router();
@@ -12,7 +11,7 @@ route
   })
   .get("/auth/success", (req, res) => {
     if (req.user) {
-      const token = setAdmin(req.user as AdminsSelectType);
+      const token = setAdmin(req.user as AdminSelectType);
       res.cookie("admin-auth-token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -23,7 +22,8 @@ route
     }
     return res.redirect(`${process.env.CLIENT_URL}/admin/login`);
   })
-  .get("/getAdmin", getAdminMiddleware, (req, res) => {
+  .get("/get-admin", getAdminMiddleware, (req, res) => {
+    console.log("Request got to /api/admin/get-admin");
     const admin = req.admin;
 
     return res

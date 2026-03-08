@@ -1,0 +1,37 @@
+"use client";
+
+import { useEffect } from "react";
+import { axiosIns } from "@/lib/axios";
+import { useRouter } from "next/navigation";
+import { Loader } from "@/components/loader";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { clearAdmin, setAdmin, setLoading } from "@/store/slices/admin-slice";
+
+export const FetchAdmin = () => {
+  const { loading } = useAppSelector((store) => store.adminReducer);
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+
+  useEffect(() => {
+    const getAdmin = async () => {
+      try {
+        dispatch(setLoading(true));
+        const response = await axiosIns.get("/api/admin/get-admin");
+        dispatch(setAdmin({ admin: response.data.admin }));
+      } catch (error) {
+        dispatch(clearAdmin());
+        router.push("/admin/login");
+      } finally {
+        dispatch(setLoading(false));
+      }
+    };
+
+    getAdmin();
+  }, []);
+
+  if (loading) {
+    return <Loader />;
+  }
+
+  return null;
+};

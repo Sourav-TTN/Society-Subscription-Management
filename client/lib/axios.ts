@@ -1,6 +1,8 @@
 import axios from "axios";
 
-axios.defaults.baseURL = process.env.SERVER_URL || "http://localhost:8000";
-axios.defaults.withCredentials = true;
+const axiosIns = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  withCredentials: true,
+});
 
-export default axios;
+export { axiosIns };

@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
-import type { AdminsSelectType } from "../db/schema.js";
+import type { AdminSelectType } from "../db/schema.js";
 
 const secretKey = process.env.JWT_SECRET_KEY!;
 
-const setAdmin = (admin: AdminsSelectType) => {
+const setAdmin = (admin: AdminSelectType) => {
   const token = jwt.sign(
     {
       id: admin.adminId,

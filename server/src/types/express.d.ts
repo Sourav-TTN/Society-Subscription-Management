@@ -1,9 +1,9 @@
-import type { AdminsSelectType } from "../db/schema.ts";
+import type { AdminSelectType } from "../db/schema.ts";
 
 declare global {
   namespace Express {
     interface Request {
-      admin?: AdminsSelectType;
+      admin?: AdminSelectType;
     }
   }
 }

@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import passport from "passport";
 import session from "express-session";
+import cookieParser from "cookie-parser";
 import { configurePassport } from "./services/passport.js";
 
 import authRoute from "./routes/auth.route.js";
@@ -13,6 +14,8 @@ configurePassport();
 const PORT = process.env.PORT ?? 8000;
 
 const app = express();
+
+app.use(cookieParser());
 
 app.use(
   session({
