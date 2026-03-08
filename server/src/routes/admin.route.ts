@@ -2,10 +2,12 @@ import express from "express";
 import { setAdmin } from "../lib/admin-auth.js";
 import type { AdminSelectType } from "../db/schema.js";
 import { getAdminMiddleware } from "../middlewares/admin.middleware.js";
+import { societyAddHandler } from "../controllers/admin.controller.js";
 
 const route = express.Router();
 
 route
+  .patch("/add-society", societyAddHandler)
   .get("/auth/failure", (req, res) => {
     return res.redirect(`${process.env.CLIENT_URL}/admin/login`);
   })

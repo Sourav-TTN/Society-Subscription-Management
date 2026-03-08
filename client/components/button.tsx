@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
+import React from "react";
 
 interface ButtonProps {
   variant?: "default" | "destructive" | "outline";
 }
 
 const variants: Record<string, string> = {
-  default: "bg-primary hover:bg-primary/80 text-primary-foreground",
+  default: "bg-primary hover:bg-primary/90 text-primary-foreground",
   destructive:
     "bg-destructive/80 hover:bg-destructive/70 focus-visible:ring-destructive/20 text-background focus-visible:border-destructive/50",
   outline:
@@ -22,7 +23,7 @@ export const Button = ({
     <button
       {...props}
       className={cn(
-        "px-4 h-8 rounded-md border border-transparent bg-clip-padding text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3 inline-flex items-center justify-center whitespace-nowrap transition-all outline-none disabled:pointer-events-none disabled:opacity-50 shrink-0",
+        "inline-flex w-full items-center justify-center rounded-md px-4 py-2 text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         variants[variant],
         className,
       )}

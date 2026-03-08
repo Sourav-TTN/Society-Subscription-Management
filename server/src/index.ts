@@ -8,6 +8,7 @@ import { configurePassport } from "./services/passport.js";
 
 import authRoute from "./routes/auth.route.js";
 import adminRoute from "./routes/admin.route.js";
+import societyRoute from "./routes/society.route.js";
 
 configurePassport();
 
@@ -52,6 +53,7 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRoute);
 app.use("/api/admin", adminRoute);
+app.use("/api/society", societyRoute);
 
 app.listen(PORT, () => {
   console.log("Server is running on port", PORT);

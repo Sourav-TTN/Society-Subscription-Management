@@ -18,6 +18,10 @@ export const FetchAdmin = () => {
         dispatch(setLoading(true));
         const response = await axiosIns.get("/api/admin/get-admin");
         dispatch(setAdmin({ admin: response.data.admin }));
+
+        if (!response.data.admin.societyId) {
+          router.push("/admin/add-society");
+        }
       } catch (error) {
         dispatch(clearAdmin());
         router.push("/admin/login");
