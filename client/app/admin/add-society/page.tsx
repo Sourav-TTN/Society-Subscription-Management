@@ -12,7 +12,7 @@ import { Button } from "@/components/button";
 
 const AddSocietyPage = () => {
   const router = useRouter();
-  const { admin } = useAppSelector((store) => store.adminReducer);
+  const { admin, loading } = useAppSelector((store) => store.adminReducer);
   const [societies, setSocieties] = useState<SocietyType[]>([]);
   const [selectedSocietyId, setSelectedSocietyId] = useState("");
   const [pin, setPin] = useState("");
@@ -34,6 +34,12 @@ const AddSocietyPage = () => {
     };
     getSocieties();
   }, []);
+
+  useEffect(() => {
+    if (admin?.societyId) {
+      router.push("/admin/dashboard");
+    }
+  }, [loading]);
 
   const dropdownOptions = societies.map((society) => ({
     value: society.societyId,

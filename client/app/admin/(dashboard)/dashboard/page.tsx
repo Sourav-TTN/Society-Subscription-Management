@@ -1,9 +1,12 @@
+import { Container } from "@/components/container";
 import { AdminDashboardClientPage } from "./components/page-client";
 
 const AdminDashboardPage = () => {
   return (
     <div>
-      <AdminDashboardClientPage />
+      <Container>
+        <AdminDashboardClientPage />
+      </Container>
     </div>
   );
 };

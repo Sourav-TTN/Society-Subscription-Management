@@ -12,6 +12,7 @@ export default function AdminLoginPage() {
   const { admin, loading } = useAppSelector((store) => store.adminReducer);
 
   useEffect(() => {
+    if (admin && !admin.societyId) router.push("/admin/add-society");
     if (admin) router.push("/admin/dashboard");
   }, [loading]);
 

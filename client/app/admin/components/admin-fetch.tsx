@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Loader } from "@/components/loader";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { clearAdmin, setAdmin, setLoading } from "@/store/slices/admin-slice";
+import { setSociety } from "@/store/slices/society-slice";
 
 export const FetchAdmin = () => {
   const { loading } = useAppSelector((store) => store.adminReducer);
@@ -22,6 +23,8 @@ export const FetchAdmin = () => {
         if (!response.data.admin.societyId) {
           router.push("/admin/add-society");
         }
+
+        dispatch(setSociety({ society: response.data.society }));
       } catch (error) {
         dispatch(clearAdmin());
         router.push("/admin/login");

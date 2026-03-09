@@ -1,8 +1,10 @@
 import express from "express";
 import { setAdmin } from "../lib/admin-auth.js";
-import type { AdminSelectType } from "../db/schema.js";
+import { societiesTable, type AdminSelectType } from "../db/schema.js";
 import { getAdminMiddleware } from "../middlewares/admin.middleware.js";
 import { societyAddHandler } from "../controllers/admin.controller.js";
+import { db } from "../db/index.js";
+import { eq } from "drizzle-orm";
 
 const route = express.Router();
 
@@ -24,13 +26,28 @@ route
     }
     return res.redirect(`${process.env.CLIENT_URL}/admin/login`);
   })
-  .get("/get-admin", getAdminMiddleware, (req, res) => {
+  .get("/get-admin", getAdminMiddleware, async (req, res) => {
     console.log("Request got to /api/admin/get-admin");
     const admin = req.admin;
 
+    let society = undefined;
+    if (admin?.societyId) {
+      let results = await db
+        .select()
+        .from(societiesTable)
+        .where(eq(societiesTable.societyId, admin.societyId));
+
+      society = results[0];
+    }
+
     return res
       .status(200)
-      .json({ admin, message: "Admin found successfully", success: true });
+      .json({
+        admin,
+        message: "Admin found successfully",
+        society,
+        success: true,
+      });
   });
 
 export default route;
