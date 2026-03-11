@@ -27,8 +27,8 @@ export const societiesRelations = relations(societiesTable, ({ many }) => ({
   flats: many(flatsTable),
 }));
 
-export type SocietiesSelectType = typeof societiesTable.$inferSelect;
-export type SocietiesInsertType = typeof societiesTable.$inferInsert;
+export type SocietySelectType = typeof societiesTable.$inferSelect;
+export type SocietyInsertType = typeof societiesTable.$inferInsert;
 
 export const societiesInsertSchema = createInsertSchema(societiesTable);
 
@@ -50,8 +50,8 @@ export const usersRelations = relations(usersTable, ({ one, many }) => ({
   flatRecipients: many(flatRecipientsTable),
 }));
 
-export type UsersSelectType = typeof usersTable.$inferSelect;
-export type UsersInsertType = typeof usersTable.$inferInsert;
+export type UserSelectType = typeof usersTable.$inferSelect;
+export type UserInsertType = typeof usersTable.$inferInsert;
 
 export const usersInsertSchema = createInsertSchema(usersTable);
 
@@ -59,9 +59,9 @@ export const adminsTable = pgTable("admins", {
   adminId: uuid("admin_id").defaultRandom().notNull().primaryKey(),
   name: text("name").notNull(),
   email: text("email").unique().notNull(),
-  societyId: uuid("society_id")
-    .notNull()
-    .references(() => societiesTable.societyId, { onDelete: "cascade" }),
+  societyId: uuid("society_id").references(() => societiesTable.societyId, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -78,8 +78,8 @@ export const adminsRelations = relations(adminsTable, ({ one, many }) => ({
   subscriptions: many(subscriptionsTable),
 }));
 
-export type AdminsSelectType = typeof adminsTable.$inferSelect;
-export type AdminsInsertType = typeof adminsTable.$inferInsert;
+export type AdminSelectType = typeof adminsTable.$inferSelect;
+export type AdminInsertType = typeof adminsTable.$inferInsert;
 
 export const adminsInsertSchema = createInsertSchema(adminsTable);
 
@@ -97,8 +97,8 @@ export const flatTypesRelations = relations(flatTypesTable, ({ many }) => ({
   flats: many(flatsTable),
 }));
 
-export type FlatTypesSelectType = typeof flatTypesTable.$inferSelect;
-export type FlatTypesInsertType = typeof flatTypesTable.$inferInsert;
+export type FlatTypeSelectType = typeof flatTypesTable.$inferSelect;
+export type FlatTypeInsertType = typeof flatTypesTable.$inferInsert;
 
 export const flatTypesInsertSchema = createInsertSchema(flatTypesTable);
 
@@ -138,8 +138,8 @@ export const flatsRelations = relations(flatsTable, ({ one, many }) => ({
   recipients: many(flatRecipientsTable),
 }));
 
-export type FlatsSelectType = typeof flatsTable.$inferSelect;
-export type FlatsInsertType = typeof flatsTable.$inferInsert;
+export type FlatSelectType = typeof flatsTable.$inferSelect;
+export type FlatInsertType = typeof flatsTable.$inferInsert;
 
 export const flatsInsertSchema = createInsertSchema(flatsTable);
 
@@ -176,8 +176,8 @@ export const flatRecipientsRelations = relations(
   }),
 );
 
-export type FlatRecipientsSelectType = typeof flatRecipientsTable.$inferSelect;
-export type FlatRecipientsInsertType = typeof flatRecipientsTable.$inferInsert;
+export type FlatRecipientSelectType = typeof flatRecipientsTable.$inferSelect;
+export type FlatRecipientInsertType = typeof flatRecipientsTable.$inferInsert;
 
 export const flatRecipientsInsertSchema =
   createInsertSchema(flatRecipientsTable);
@@ -216,8 +216,8 @@ export const subscriptionsRelations = relations(
   }),
 );
 
-export type SubscriptionsSelectType = typeof subscriptionsTable.$inferSelect;
-export type SubscriptionsInsertType = typeof subscriptionsTable.$inferInsert;
+export type SubscriptionSelectType = typeof subscriptionsTable.$inferSelect;
+export type SubscriptionInsertType = typeof subscriptionsTable.$inferInsert;
 
 export const subscriptionsInsertSchema = createInsertSchema(societiesTable);
 
@@ -252,8 +252,8 @@ export const billsRelations = relations(billsTable, ({ one, many }) => ({
   payments: many(paymentsTable),
 }));
 
-export type BillsSelectType = typeof billsTable.$inferSelect;
-export type BillsInsertType = typeof billsTable.$inferInsert;
+export type BillSelectType = typeof billsTable.$inferSelect;
+export type BillInsertType = typeof billsTable.$inferInsert;
 
 export const billsInsertSchema = createInsertSchema(billsTable);
 
@@ -279,8 +279,8 @@ export const paymentsRelations = relations(paymentsTable, ({ one, many }) => ({
   }),
 }));
 
-export type PaymentsSelectType = typeof paymentsTable.$inferSelect;
-export type PaymentsInsertType = typeof paymentsTable.$inferInsert;
+export type PaymentSelectType = typeof paymentsTable.$inferSelect;
+export type PaymentInsertType = typeof paymentsTable.$inferInsert;
 
 export const paymentsInsertSchema = createInsertSchema(paymentsTable);
 
@@ -307,12 +307,11 @@ export const notifcationsRelations = relations(
       fields: [notificationsTable.sentBy],
       references: [adminsTable.adminId],
     }),
-    notificationRecipients: many(notificationsTable),
   }),
 );
 
-export type NotificationsSelectType = typeof notificationsTable.$inferSelect;
-export type NotificationsInsertType = typeof notificationsTable.$inferInsert;
+export type NotificationSelectType = typeof notificationsTable.$inferSelect;
+export type NotificationInsertType = typeof notificationsTable.$inferInsert;
 
 export const notificationsInsertSchema = createInsertSchema(notificationsTable);
 
@@ -347,9 +346,9 @@ export const notificationRecipientsRelations = relations(
   }),
 );
 
-export type NotificationRecipientsSelectType =
+export type NotificationRecipientSelectType =
   typeof notificationRecipientsTable.$inferSelect;
-export type NotificationRecipientsInsertType =
+export type NotificationRecipientInsertType =
   typeof notificationRecipientsTable.$inferInsert;
 
 export const notificationRecipientsInsertSchema = createInsertSchema(

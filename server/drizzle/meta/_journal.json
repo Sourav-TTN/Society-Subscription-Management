@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1772950952342,
+      "tag": "0000_wise_hydra",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772951119349,
+      "tag": "0001_famous_oracle",
+      "breakpoints": true
+    }
+  ]
+}
