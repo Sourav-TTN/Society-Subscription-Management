@@ -4,7 +4,7 @@ import {
   societyCreationHandler,
 } from "../controllers/society.controller.js";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router
   .get("/all", getAllSocietiesHandler)

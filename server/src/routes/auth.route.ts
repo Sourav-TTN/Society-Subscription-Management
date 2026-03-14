@@ -1,7 +1,7 @@
 import express from "express";
 import passport from "passport";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router
   .get(

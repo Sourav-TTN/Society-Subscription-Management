@@ -9,13 +9,13 @@ import { z } from "zod";
 import { db } from "../db/index.js";
 import { validateUuid } from "../lib/utils.js";
 import type { Request, Response } from "express";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, gte, lt } from "drizzle-orm";
 
 async function getSubscriptionHandler(req: Request, res: Response) {
   try {
     let { subscriptionId, societyId } = req.params;
     console.log(
-      `Request got to /api/society/${societyId}/subscriptions/${subscriptionId}`,
+      `Request recieved at /api/society/${societyId}/subscriptions/${subscriptionId}`,
     );
 
     const validationResult = validateUuid.safeParse({ id: subscriptionId });
@@ -35,7 +35,6 @@ async function getSubscriptionHandler(req: Request, res: Response) {
         size: flatTypesTable.size,
         charges: subscriptionsTable.charges,
         effectiveFrom: subscriptionsTable.effectiveFrom,
-        createdBy: adminsTable.name,
         createdAt: subscriptionsTable.createdAt,
         updatedAt: subscriptionsTable.updatedAt,
       })
@@ -44,10 +43,6 @@ async function getSubscriptionHandler(req: Request, res: Response) {
       .innerJoin(
         flatTypesTable,
         eq(flatTypesTable.flatTypeId, subscriptionsTable.flatTypeId),
-      )
-      .innerJoin(
-        adminsTable,
-        eq(adminsTable.adminId, subscriptionsTable.createdBy),
       );
 
     if (!subscription) {
@@ -74,7 +69,7 @@ async function createSubscriptionHandler(req: Request, res: Response) {
     let { size, flatTypeId, ...body } = req.body;
     const { societyId } = req.params as { societyId: string };
 
-    console.log(`Request got to /api/society/${societyId}/subscriptions`);
+    console.log(`Request recieved at /api/society/${societyId}/subscriptions`);
 
     if (size) {
       const [newFlatType] = await db
@@ -103,7 +98,7 @@ async function createSubscriptionHandler(req: Request, res: Response) {
       }
     }
 
-    console.log(flatTypeId);
+    // console.log(flatTypeId);
 
     const validationResult = subscriptionsInsertSchema.safeParse({
       ...body,
@@ -135,11 +130,18 @@ async function createSubscriptionHandler(req: Request, res: Response) {
       });
     }
 
+    const startOfMonth = new Date(subscriptionYear, subscriptionMonth, 1);
+    const endOfMonth = new Date(subscriptionYear, subscriptionMonth + 1, 1);
+
     const [existingSubscription] = await db
       .select()
       .from(subscriptionsTable)
       .where(
-        sql`extract(year from ${subscriptionsTable.effectiveFrom}) = ${currentYear} AND extract (month from ${subscriptionsTable.effectiveFrom}) = ${currentMonth + 1}`,
+        and(
+          eq(subscriptionsTable.flatTypeId, flatTypeId),
+          gte(subscriptionsTable.effectiveFrom, startOfMonth),
+          lt(subscriptionsTable.effectiveFrom, endOfMonth),
+        ),
       );
 
     if (existingSubscription) {
@@ -149,9 +151,19 @@ async function createSubscriptionHandler(req: Request, res: Response) {
       });
     }
 
-    await db.insert(subscriptionsTable).values({
-      ...data,
-    });
+    const [created] = await db
+      .insert(subscriptionsTable)
+      .values({ ...data })
+      .returning();
+
+    if (!created) {
+      return res
+        .status(400)
+        .json({
+          error: "Can't create subscription right now.",
+          success: false,
+        });
+    }
 
     const [subscription] = await db
       .select({
@@ -160,7 +172,6 @@ async function createSubscriptionHandler(req: Request, res: Response) {
         size: flatTypesTable.size,
         charges: subscriptionsTable.charges,
         effectiveFrom: subscriptionsTable.effectiveFrom,
-        createdBy: adminsTable.name,
         createdAt: subscriptionsTable.createdAt,
         updatedAt: subscriptionsTable.updatedAt,
       })
@@ -169,10 +180,7 @@ async function createSubscriptionHandler(req: Request, res: Response) {
         flatTypesTable,
         eq(flatTypesTable.flatTypeId, subscriptionsTable.flatTypeId),
       )
-      .innerJoin(
-        adminsTable,
-        eq(adminsTable.adminId, subscriptionsTable.createdBy),
-      );
+      .where(eq(subscriptionsTable.subscriptionId, created.subscriptionId));
 
     return res.status(201).json({
       message: "Subscription created successfully",
@@ -191,7 +199,7 @@ async function createSubscriptionHandler(req: Request, res: Response) {
 async function getAllSubscriptionsHandler(req: Request, res: Response) {
   try {
     let { societyId } = req.params;
-    console.log(`Request got to /api/society/${societyId}/subscriptions`);
+    console.log(`Request recieved at /api/society/${societyId}/subscriptions`);
 
     const validationResult = validateUuid.safeParse({ id: societyId });
 
@@ -220,7 +228,6 @@ async function getAllSubscriptionsHandler(req: Request, res: Response) {
         size: flatTypesTable.size,
         charges: subscriptionsTable.charges,
         effectiveFrom: subscriptionsTable.effectiveFrom,
-        createdBy: adminsTable.name,
         createdAt: subscriptionsTable.createdAt,
         updatedAt: subscriptionsTable.updatedAt,
       })
@@ -229,10 +236,6 @@ async function getAllSubscriptionsHandler(req: Request, res: Response) {
       .innerJoin(
         flatTypesTable,
         eq(flatTypesTable.flatTypeId, subscriptionsTable.flatTypeId),
-      )
-      .innerJoin(
-        adminsTable,
-        eq(adminsTable.adminId, subscriptionsTable.createdBy),
       )
       .orderBy(desc(subscriptionsTable.effectiveFrom))
       .offset((page - 1) * limit)
@@ -255,7 +258,7 @@ async function updateSubscriptionHandler(req: Request, res: Response) {
   try {
     let { subscriptionId, societyId } = req.params;
     console.log(
-      `Request got to /api/society/${societyId}/subscriptions/${subscriptionId}`,
+      `Request recieved at /api/society/${societyId}/subscriptions/${subscriptionId}`,
     );
     let body = req.body;
 
@@ -321,7 +324,6 @@ async function updateSubscriptionHandler(req: Request, res: Response) {
         size: flatTypesTable.size,
         charges: subscriptionsTable.charges,
         effectiveFrom: subscriptionsTable.effectiveFrom,
-        createdBy: adminsTable.name,
         createdAt: subscriptionsTable.createdAt,
         updatedAt: subscriptionsTable.updatedAt,
       })
@@ -330,10 +332,6 @@ async function updateSubscriptionHandler(req: Request, res: Response) {
       .innerJoin(
         flatTypesTable,
         eq(flatTypesTable.flatTypeId, subscriptionsTable.flatTypeId),
-      )
-      .innerJoin(
-        adminsTable,
-        eq(adminsTable.adminId, subscriptionsTable.createdBy),
       );
 
     return res.status(200).json({
@@ -348,7 +346,7 @@ async function deleteSubscriptionHandler(req: Request, res: Response) {
   try {
     let { subscriptionId, societyId } = req.params;
     console.log(
-      `Request got to /api/society/${societyId}/subscriptions/${subscriptionId}`,
+      `Request recieved at /api/society/${societyId}/subscriptions/${subscriptionId}`,
     );
 
     const validationResult = validateUuid.safeParse({ id: subscriptionId });

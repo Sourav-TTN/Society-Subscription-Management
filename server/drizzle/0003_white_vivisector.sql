@@ -1,0 +1,1 @@
+ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_flat_type_id_effective_from_unique" UNIQUE("flat_type_id","effective_from");

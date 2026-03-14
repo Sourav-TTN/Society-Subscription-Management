@@ -15,6 +15,48 @@
       "when": 1772951119349,
       "tag": "0001_famous_oracle",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773136389914,
+      "tag": "0002_cute_tony_stark",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773426639338,
+      "tag": "0003_white_vivisector",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1773490718474,
+      "tag": "0004_damp_guardsmen",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1773492171342,
+      "tag": "0005_wise_lila_cheney",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773495577757,
+      "tag": "0006_messy_harpoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773495764895,
+      "tag": "0007_oval_patriot",
+      "breakpoints": true
     }
   ]
 }

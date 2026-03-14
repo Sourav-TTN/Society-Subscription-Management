@@ -1,8 +1,9 @@
-import { eq } from "drizzle-orm";
+import { eq, ne } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { adminsTable } from "../db/schema.js";
 import { verifyAdmin } from "../lib/admin-auth.js";
 import type { Request, Response, NextFunction } from "express";
+import { validateUuid } from "../lib/utils.js";
 
 const getAdminMiddleware = async (
   req: Request,
@@ -38,4 +39,41 @@ const getAdminMiddleware = async (
   next();
 };
 
-export { getAdminMiddleware };
+const validateAdminMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  let { adminId } = req.params;
+
+  if (!adminId) {
+    return res
+      .status(400)
+      .json({ error: "No Admin ID provided.", success: false });
+  }
+
+  const validationResult = validateUuid.safeParse({ id: adminId });
+
+  if (validationResult.error) {
+    return res
+      .status(400)
+      .json({ error: validationResult.error.message, success: false });
+  }
+
+  adminId = validationResult.data.id;
+
+  const [admin] = await db
+    .select()
+    .from(adminsTable)
+    .where(eq(adminsTable.adminId, adminId));
+
+  if (!admin) {
+    return res.status(401).json({ error: "No admin found.", success: false });
+  }
+
+  req.admin = admin;
+
+  next();
+};
+
+export { getAdminMiddleware, validateAdminMiddleware };

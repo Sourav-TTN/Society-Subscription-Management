@@ -2,13 +2,14 @@ import {
   date,
   text,
   uuid,
+  unique,
   pgTable,
   numeric,
   integer,
   boolean,
   timestamp,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { eq, relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 
 export const societiesTable = pgTable("societies", {
@@ -23,6 +24,7 @@ export const societiesTable = pgTable("societies", {
 });
 
 export const societiesRelations = relations(societiesTable, ({ many }) => ({
+  users: many(usersTable),
   admins: many(adminsTable),
   flats: many(flatsTable),
 }));
@@ -32,22 +34,37 @@ export type SocietyInsertType = typeof societiesTable.$inferInsert;
 
 export const societiesInsertSchema = createInsertSchema(societiesTable);
 
-export const usersTable = pgTable("users", {
-  userId: uuid("user_id").notNull().defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").unique().notNull(),
-  password: text("password").notNull(),
-  isVerified: boolean("is_verified").default(true).notNull(),
-  otp: integer("otp"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
+export const usersTable = pgTable(
+  "users",
+  {
+    userId: uuid("user_id").notNull().defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    password: text("password").notNull(),
+    isVerified: boolean("is_verified").default(true).notNull(),
+    societyId: uuid("society_id")
+      .notNull()
+      .references(() => societiesTable.societyId, {
+        onDelete: "cascade",
+      }),
+    otp: integer("otp"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("unique_users_email_society").on(table.email, table.societyId),
+  ],
+);
 
 export const usersRelations = relations(usersTable, ({ one, many }) => ({
   flatRecipients: many(flatRecipientsTable),
+  society: one(societiesTable, {
+    fields: [usersTable.societyId],
+    references: [societiesTable.societyId],
+  }),
 }));
 
 export type UserSelectType = typeof usersTable.$inferSelect;
@@ -83,15 +100,24 @@ export type AdminInsertType = typeof adminsTable.$inferInsert;
 
 export const adminsInsertSchema = createInsertSchema(adminsTable);
 
-export const flatTypesTable = pgTable("flat_types", {
-  flatTypeId: uuid("flat_type_id").defaultRandom().notNull().primaryKey(),
-  size: integer("size").unique().notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
+export const flatTypesTable = pgTable(
+  "flat_types",
+  {
+    flatTypeId: uuid("flat_type_id").defaultRandom().notNull().primaryKey(),
+    societyId: uuid("society_id")
+      .notNull()
+      .references(() => societiesTable.societyId),
+    size: integer("size").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("unique_flat_types_size_society").on(table.size, table.societyId),
+  ],
+);
 
 export const flatTypesRelations = relations(flatTypesTable, ({ many }) => ({
   flats: many(flatsTable),
@@ -102,25 +128,37 @@ export type FlatTypeInsertType = typeof flatTypesTable.$inferInsert;
 
 export const flatTypesInsertSchema = createInsertSchema(flatTypesTable);
 
-export const flatsTable = pgTable("flats", {
-  flatId: uuid("flat_id").defaultRandom().notNull().primaryKey(),
-  flatBlock: text("flat_block").notNull(),
-  flatFloor: integer("flat_floor").notNull(),
-  flatNumber: text("flat_number").notNull(),
-  societyId: uuid("society_id")
-    .notNull()
-    .references(() => societiesTable.societyId),
-  flatTypeId: uuid("flat_type_id")
-    .notNull()
-    .references(() => flatTypesTable.flatTypeId),
-  createdBy: uuid("created_by")
-    .notNull()
-    .references(() => adminsTable.adminId),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
+export const flatsTable = pgTable(
+  "flats",
+  {
+    flatId: uuid("flat_id").defaultRandom().notNull().primaryKey(),
+    flatBlock: text("flat_block").notNull(),
+    flatFloor: integer("flat_floor").notNull(),
+    flatNumber: text("flat_number").notNull(),
+    societyId: uuid("society_id")
+      .notNull()
+      .references(() => societiesTable.societyId),
+    flatTypeId: uuid("flat_type_id")
+      .notNull()
+      .references(() => flatTypesTable.flatTypeId),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => adminsTable.adminId),
+    isDeleted: boolean("is_deleted").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("unique_flat_address").on(
+      table.societyId,
+      table.flatBlock,
+      table.flatFloor,
+      table.flatNumber,
+    ),
+  ],
+);
 
 export const flatsRelations = relations(flatsTable, ({ one, many }) => ({
   society: one(societiesTable, {
@@ -151,10 +189,12 @@ export const flatRecipientsTable = pgTable("flat_recipients", {
   flatId: uuid("flat_id")
     .notNull()
     .references(() => flatsTable.flatId),
-  ownerId: uuid("owner_id").references(() => usersTable.userId),
+  ownerId: uuid("owner_id")
+    .notNull()
+    .references(() => usersTable.userId),
   isCurrentOwner: boolean("is_current_owner").default(true).notNull(),
-  from: date("from", { mode: "date" }).notNull(),
-  to: date("to"),
+  from: date("from", { mode: "date" }).defaultNow().notNull(),
+  to: date("to", { mode: "date" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .$onUpdate(() => new Date())
@@ -182,24 +222,33 @@ export type FlatRecipientInsertType = typeof flatRecipientsTable.$inferInsert;
 export const flatRecipientsInsertSchema =
   createInsertSchema(flatRecipientsTable);
 
-export const subscriptionsTable = pgTable("subscriptions", {
-  subscriptionId: uuid("subscription_id")
-    .defaultRandom()
-    .notNull()
-    .primaryKey(),
-  flatTypeId: uuid("flat_type_id")
-    .notNull()
-    .references(() => flatTypesTable.flatTypeId),
-  charges: numeric("charges").notNull(),
-  createdBy: uuid("created_by")
-    .notNull()
-    .references(() => adminsTable.adminId),
-  effectiveFrom: date("effective_from", { mode: "date" }).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
+export const subscriptionsTable = pgTable(
+  "subscriptions",
+  {
+    subscriptionId: uuid("subscription_id")
+      .defaultRandom()
+      .notNull()
+      .primaryKey(),
+    flatTypeId: uuid("flat_type_id")
+      .notNull()
+      .references(() => flatTypesTable.flatTypeId),
+    charges: numeric("charges").notNull(),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => adminsTable.adminId),
+    effectiveFrom: date("effective_from", { mode: "date" }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("unique_subscriptions_flat_type_effective_from").on(
+      table.flatTypeId,
+      table.effectiveFrom,
+    ),
+  ],
+);
 
 export const subscriptionsRelations = relations(
   subscriptionsTable,
@@ -219,26 +268,37 @@ export const subscriptionsRelations = relations(
 export type SubscriptionSelectType = typeof subscriptionsTable.$inferSelect;
 export type SubscriptionInsertType = typeof subscriptionsTable.$inferInsert;
 
-export const subscriptionsInsertSchema = createInsertSchema(societiesTable);
+export const subscriptionsInsertSchema = createInsertSchema(subscriptionsTable);
 
 export const statusEnum = ["pending", "paid"] as const;
 
-export const billsTable = pgTable("bills", {
-  billId: uuid("bill_id").notNull().defaultRandom().primaryKey(),
-  flatRecipientId: uuid("flat_recipient_id")
-    .notNull()
-    .references(() => flatRecipientsTable.flatRecipientId),
-  status: text("status", { enum: statusEnum }).default("pending").notNull(),
-  subscriptionId: uuid("subscription_id")
-    .notNull()
-    .references(() => subscriptionsTable.subscriptionId),
-  month: integer("month").notNull(),
-  year: integer("year").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
+export const billsTable = pgTable(
+  "bills",
+  {
+    billId: uuid("bill_id").notNull().defaultRandom().primaryKey(),
+    flatRecipientId: uuid("flat_recipient_id")
+      .notNull()
+      .references(() => flatRecipientsTable.flatRecipientId),
+    status: text("status", { enum: statusEnum }).default("pending").notNull(),
+    subscriptionId: uuid("subscription_id")
+      .notNull()
+      .references(() => subscriptionsTable.subscriptionId),
+    month: integer("month").notNull(),
+    year: integer("year").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("unique_bill_subscription_month_year").on(
+      table.subscriptionId,
+      table.flatRecipientId,
+      table.month,
+      table.year,
+    ),
+  ],
+);
 
 export const billsRelations = relations(billsTable, ({ one, many }) => ({
   recipient: one(flatRecipientsTable, {
