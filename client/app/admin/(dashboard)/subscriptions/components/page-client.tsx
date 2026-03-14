@@ -42,17 +42,6 @@ export const SubscriptionsClientPage = () => {
     subscriptionId: null,
   });
 
-  const mapSubscription = (sub: ApiSubscriptionResponse) => ({
-    subscriptionId: sub.subscriptionId,
-    flatTypeId: sub.flatTypeId,
-    size: sub.size,
-    charges: sub.charges,
-    createdBy: sub.createdBy,
-    effectiveFrom: new Date(sub.effectiveFrom),
-    createdAt: new Date(sub.createdAt),
-    updatedAt: new Date(sub.updatedAt),
-  });
-
   const fetchSubscriptions = async () => {
     if (!society?.societyId) return;
 
@@ -63,7 +52,7 @@ export const SubscriptionsClientPage = () => {
         `/api/society/${society.societyId}/subscriptions`,
       );
 
-      const transformed = res.data.subscriptions.map(mapSubscription);
+      const transformed = res.data.subscriptions;
 
       setSubscriptions(transformed);
     } catch (error) {

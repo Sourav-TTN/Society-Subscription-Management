@@ -11,7 +11,7 @@ const societyAddSchema = z.object({
 });
 
 async function societyAddHandler(req: Request, res: Response) {
-  console.log("Request got to /api/admin/add-society");
+  console.log("Request recieved at /api/admin/add-society");
   try {
     const body = req.body;
 
@@ -51,14 +51,12 @@ async function societyAddHandler(req: Request, res: Response) {
       return res.status(404).json({ error: "No admin found.", success: false });
     }
 
-    return res
-      .status(200)
-      .json({
-        message: "Admin updated successfully",
-        admin: updatedAdmin,
-        society,
-        success: true,
-      });
+    return res.status(200).json({
+      message: "Admin updated successfully",
+      admin: updatedAdmin,
+      society,
+      success: true,
+    });
   } catch (error) {
     console.error("ADMIN[ADD-SOCIETY][PATCH]:", error);
     return res

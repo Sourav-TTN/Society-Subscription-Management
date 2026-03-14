@@ -10,8 +10,8 @@ import {
 } from "@/components/table";
 import { format } from "date-fns";
 import { Button } from "@/components/button";
-import { Edit2, Trash2, Home, Calendar, CreditCard, User } from "lucide-react";
 import { ApiSubscriptionResponse } from "./page-client";
+import { Edit2, Trash2, Home, Calendar, CreditCard } from "lucide-react";
 
 interface SubscriptionTableProps {
   subscriptions: (ApiSubscriptionResponse & { size: number })[];
@@ -46,7 +46,6 @@ export const SubscriptionTable = ({
             <TableHead>Flat Type</TableHead>
             <TableHead>Charges</TableHead>
             <TableHead>Effective From</TableHead>
-            <TableHead>Created By</TableHead>
             <TableHead>Created At</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -70,12 +69,6 @@ export const SubscriptionTable = ({
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   {format(new Date(subscription.effectiveFrom), "dd MMM yyyy")}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  {subscription.createdBy}
                 </div>
               </TableCell>
               <TableCell>

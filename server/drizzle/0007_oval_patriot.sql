@@ -1,0 +1,1 @@
+ALTER TABLE "flats" ADD CONSTRAINT "unique_flat_address" UNIQUE("society_id","flat_block","flat_floor","flat_number");

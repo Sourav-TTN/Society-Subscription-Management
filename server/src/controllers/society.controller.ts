@@ -7,7 +7,7 @@ import { db } from "../db/index.js";
 import type { Request, Response } from "express";
 
 async function societyCreationHandler(req: Request, res: Response) {
-  console.log("Request got to /api/society/create");
+  console.log("Request recieved at /api/society/create");
   try {
     const body = req.body as SocietyInsertType;
 
@@ -48,7 +48,7 @@ async function societyCreationHandler(req: Request, res: Response) {
 }
 
 async function getAllSocietiesHandler(req: Request, res: Response) {
-  console.log("Request got to /api/society/all");
+  console.log("Request recieved at /api/society/all");
   try {
     const societies = await db.select().from(societiesTable);
 

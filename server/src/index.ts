@@ -7,8 +7,12 @@ import cookieParser from "cookie-parser";
 import { configurePassport } from "./services/passport.js";
 
 import authRoute from "./routes/auth.route.js";
+import flatRoute from "./routes/flat.route.js";
+import usersRoute from "./routes/user.route.js";
 import adminRoute from "./routes/admin.route.js";
 import societyRoute from "./routes/society.route.js";
+import flatTypesRoute from "./routes/flat-types.route.js";
+import subscriptionRoute from "./routes/subscription.route.js";
 
 configurePassport();
 
@@ -54,6 +58,10 @@ app.get("/", (req, res) => {
 app.use("/auth", authRoute);
 app.use("/api/admin", adminRoute);
 app.use("/api/society", societyRoute);
+app.use("/api/society/:societyId/flats", flatRoute);
+app.use("/api/society/:societyId/users", usersRoute);
+app.use("/api/society/:societyId/flat-types", flatTypesRoute);
+app.use("/api/society/:societyId/subscriptions", subscriptionRoute);
 
 app.listen(PORT, () => {
   console.log("Server is running on port", PORT);
