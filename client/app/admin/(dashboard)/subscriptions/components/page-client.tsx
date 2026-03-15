@@ -136,7 +136,6 @@ export const SubscriptionsClientPage = () => {
       fetchSubscriptions();
     } catch (error: any) {
       console.error("Error saving subscription:", error);
-      toast.error(error.response?.data?.error || "Failed to save subscription");
       throw error;
     }
   };

@@ -57,6 +57,27 @@
       "when": 1773495764895,
       "tag": "0007_oval_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1773571031356,
+      "tag": "0008_dusty_lake",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1773583687539,
+      "tag": "0009_parallel_madrox",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1773588807437,
+      "tag": "0010_common_stryfe",
+      "breakpoints": true
     }
   ]
 }
