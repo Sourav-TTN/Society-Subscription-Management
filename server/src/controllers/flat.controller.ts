@@ -4,11 +4,13 @@ import {
   flatTypesTable,
   flatsInsertSchema,
   flatRecipientsTable,
+  subscriptionsTable,
+  type SubscriptionSelectType,
 } from "../db/schema.js";
 
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { validateUuid } from "../lib/utils.js";
 import type { Request, Response } from "express";
 
@@ -85,6 +87,22 @@ async function createFlatHandler(req: Request, res: Response) {
     }
 
     const data = validationResult.data;
+    let flatTypeId = data.flatTypeId;
+    let currentDate = new Date();
+
+    let { rows: subscriptions } = await db.execute<SubscriptionSelectType>(sql`
+      select * from ${subscriptionsTable}
+      where flat_type_id = ${flatTypeId} and effective_from <= ${currentDate}
+    `);
+
+    if (subscriptions.length == 0) {
+      return res
+        .status(400)
+        .json({
+          error: "Create subscription for the current month first.",
+          success: false,
+        });
+    }
 
     const [newFlat] = await db
       .insert(flatsTable)

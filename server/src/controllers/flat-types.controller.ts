@@ -1,8 +1,14 @@
-import type { Request, Response } from "express";
-import { validateUuid } from "../lib/utils.js";
+import { eq, sql } from "drizzle-orm";
 import { db } from "../db/index.js";
-import { flatTypesTable } from "../db/schema.js";
-import { eq } from "drizzle-orm";
+import { validateUuid } from "../lib/utils.js";
+import {
+  flatTypesTable,
+  societiesTable,
+  subscriptionsTable,
+  type FlatTypeSelectType,
+  type SubscriptionSelectType,
+} from "../db/schema.js";
+import type { Request, Response } from "express";
 
 async function getAllFlatTypesHanlder(req: Request, res: Response) {
   try {
@@ -17,10 +23,21 @@ async function getAllFlatTypesHanlder(req: Request, res: Response) {
 
     societyId = validationResult.data.id;
 
-    const flatTypes = await db
-      .select()
-      .from(flatTypesTable)
-      .where(eq(flatTypesTable.societyId, societyId));
+    const currentDate = new Date();
+
+    const flatTypesResult = await db.execute(sql`
+      select 
+      f.flat_type_id as "flatTypeId",
+      f.society_id as "societyId",
+      f.size as "size",
+      f.created_at as "createdAt",
+      f.updated_at as "updatedAt"
+      from ${flatTypesTable} f
+      join ${subscriptionsTable} s on s.flat_type_id = f.flat_type_id
+      where f.society_id = ${societyId} and s.effective_from <= ${currentDate}
+    `);
+
+    const flatTypes = flatTypesResult.rows;
 
     return res.status(200).json({
       flatTypes,

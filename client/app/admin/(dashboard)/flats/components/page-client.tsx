@@ -83,6 +83,7 @@ export const FlatsClientPage = () => {
       const res = await axiosIns.get(
         `/api/society/${society.societyId}/flat-types`,
       );
+      console.log(res.data);
       setFlatTypes(res.data.flatTypes);
     } catch (error) {
       console.error("Error fetching flat types:", error);

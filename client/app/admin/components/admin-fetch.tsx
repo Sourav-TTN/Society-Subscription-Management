@@ -5,8 +5,8 @@ import { axiosIns } from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import { Loader } from "@/components/loader";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { clearAdmin, setAdmin, setLoading } from "@/store/slices/admin-slice";
 import { setSociety } from "@/store/slices/society-slice";
+import { clearAdmin, setAdmin, setLoading } from "@/store/slices/admin-slice";
 
 export const FetchAdmin = () => {
   const { loading } = useAppSelector((store) => store.adminReducer);

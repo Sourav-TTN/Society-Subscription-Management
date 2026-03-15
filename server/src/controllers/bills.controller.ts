@@ -64,7 +64,7 @@ async function getAllBillsHandler(req: Request, res: Response) {
           b.bill_id as "billId",
           b.flat_recipient_id as "flatRecipientId",
           u.name as "name",
-          concat(f.flat_number, f.flat_floor, f.flat_block) as "flat",
+          concat(f.flat_number, ', ', f.flat_floor, ', ', f.flat_block) as "flat",
           b.month as "month",
           b.year as "year",
           b.subscription_id as "subscriptionId",
@@ -140,7 +140,7 @@ async function getAllBillsHandler(req: Request, res: Response) {
         b.bill_id as "billId",
         b.flat_recipient_id as "flatRecipientId",
         u.name as "name",
-        concat(f.flat_number, f.flat_floor, f.flat_block) as "flat",
+        concat(f.flat_number, ', ', f.flat_floor, ', ', f.flat_block) as "flat",
         b.month as "month",
         b.year as "year",
         b.subscription_id as "subscriptionId",
@@ -185,7 +185,7 @@ async function updateBillHandler(req: Request, res: Response) {
     let validationResult = validateUuid
       .extend({
         paymentMode: z.enum(["cash", "upi", "online"]),
-        paidAt: z.iso.datetime().optional(),
+        paidAt: z.coerce.date().optional(),
       })
       .safeParse({ id: billId, ...body });
 
@@ -249,7 +249,11 @@ async function updateBillHandler(req: Request, res: Response) {
     const updatedBill = updatedBillResult.rows[0]!;
 
     const columns = [sql`bill_id`, sql`amount`, sql`payment_via`];
-    const values = [updatedBill.billId, updatedBill.charges, paymentMode];
+    const values: (string | Date)[] = [
+      updatedBill.billId,
+      updatedBill.charges,
+      paymentMode,
+    ];
 
     if (paidAt) {
       columns.push(sql`paid_at`);

@@ -18,15 +18,15 @@ const routes = [
     label: "Subscriptions",
   },
   {
-    href: "/monthly-records",
+    href: "/admin/monthly-records",
     label: "Records",
   },
   {
-    href: "/payment-entry",
+    href: "/admin/payment-entry",
     label: "Payments",
   },
   {
-    href: "/reports",
+    href: "/admin/reports",
     label: "Reports",
   },
 ];

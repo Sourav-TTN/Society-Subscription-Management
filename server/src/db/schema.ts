@@ -327,7 +327,8 @@ export const paymentsTable = pgTable("payments", {
     .references(() => billsTable.billId),
   amount: numeric("amount").notNull(),
   paymentVia: text("payment_via", { enum: paymentViaEnum }).notNull(),
-  paidAt: timestamp("paid_at").defaultNow().notNull(),
+  paidAt: date("paid_at", { mode: "date" }).defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date())
