@@ -19,7 +19,7 @@ route
       res.cookie("admin-auth-token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: process.env.NODE_ENV == "production" ? "none" : "lax",
         maxAge: 2 * 7 * 24 * 60 * 60 * 1000,
       });
       return res.redirect(`${process.env.CLIENT_URL}/admin/dashboard`);

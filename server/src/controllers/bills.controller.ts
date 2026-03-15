@@ -1,0 +1,278 @@
+import z from "zod";
+import { sql } from "drizzle-orm";
+import { db } from "../db/index.js";
+import { validateUuid } from "../lib/utils.js";
+import type { Request, Response } from "express";
+
+import {
+  flatsTable,
+  statusEnum,
+  usersTable,
+  billsTable,
+  paymentsTable,
+  flatTypesTable,
+  subscriptionsTable,
+  type BillSelectType,
+  flatRecipientsTable,
+} from "../db/schema.js";
+
+type BillResultType = {
+  billId: string;
+  flatRecipientId: string;
+  name: string;
+  flat: string;
+  month: number;
+  year: number;
+  subscriptionId: string;
+  charges: string;
+  status: "pending" | "paid";
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+async function getAllBillsHandler(req: Request, res: Response) {
+  try {
+    const { societyId } = req.society;
+
+    console.log(`Request received at /api/society/${societyId}/bills`);
+
+    let query = req.query;
+
+    const filterValidationResult = z
+      .object({
+        month: z.coerce.number().int().min(1).max(12).optional(),
+        year: z.coerce.number().int().min(1000).max(9999).optional(),
+      })
+      .safeParse(query);
+
+    if (filterValidationResult.error) {
+      return res
+        .status(400)
+        .json({ error: filterValidationResult.error.message, success: false });
+    }
+
+    let currentMonth = new Date().getMonth() + 1;
+    let currentYear = new Date().getFullYear();
+
+    let { month = currentMonth, year = currentYear } =
+      filterValidationResult.data;
+
+    // find all the bills for the given month and the year with for each flat according to the flat recipient and flat must not be deleted
+
+    let billsResult = await db.execute<BillResultType>(sql`
+          select 
+          b.bill_id as "billId",
+          b.flat_recipient_id as "flatRecipientId",
+          u.name as "name",
+          concat(f.flat_number, f.flat_floor, f.flat_block) as "flat",
+          b.month as "month",
+          b.year as "year",
+          b.subscription_id as "subscriptionId",
+          s.charges as "charges",
+          b.status as "status",
+          b.created_at as "createdAt",
+          b.updated_at as "updatedAt"
+          from ${billsTable} b
+          join ${subscriptionsTable} s on s.subscription_id = b.subscription_id
+          join ${flatRecipientsTable} fr on fr.flat_recipient_id = b.flat_recipient_id
+          join ${usersTable} u on u.user_id = fr.owner_id
+          join ${flatsTable} f on f.flat_id = fr.flat_id
+          where fr.is_current_owner = ${true} and f.is_deleted = ${false}  
+          ${month && sql` and b.month = ${month}`}
+          ${year && sql` and b.year = ${year}`}
+        `);
+
+    let bills = billsResult.rows;
+
+    if (month == currentMonth && year == currentYear && bills.length == 0) {
+      type FlatSubscriptionsType = {
+        subscriptionId: string;
+        effectiveFrom: Date;
+        flatRecipientId: string;
+        flatId: string;
+        societyId: string;
+        size: number;
+        flatTypeId: string;
+      };
+
+      let flatsSubscriptionsResult =
+        await db.execute<FlatSubscriptionsType>(sql`
+        select 
+        s.subscription_id as "subscriptionId",
+        s.effective_from as "effectiveFrom",
+        fr.flat_recipient_id as "flatRecipientId",
+        f.flat_id as "flatId",
+        f.society_id as "societyId",
+        ft.size as "size",
+        s.flat_type_id as "flatTypeId"
+        from ${subscriptionsTable} s
+        join ${flatTypesTable} ft on ft.flat_type_id = s.flat_type_id
+        join ${flatsTable} f on f.flat_type_id = ft.flat_type_id
+        join ${flatRecipientsTable} fr on fr.flat_id = f.flat_id
+        where f.society_id = ${societyId} and f.is_deleted = ${false} and fr.is_current_owner = ${true} and
+        s.effective_from = (
+          select max(s2.effective_from) from ${subscriptionsTable} s2 
+          where s.flat_type_id = s2.flat_type_id and s2.effective_from < ${new Date("2026-09-01")}
+        )
+      `);
+
+      let flatsSubscriptions = flatsSubscriptionsResult.rows;
+
+      if (flatsSubscriptions.length == 0) {
+        return res
+          .status(400)
+          .json({ error: "Create flats first", success: false });
+      }
+
+      await db.execute(sql`
+        insert into ${billsTable} (flat_recipient_id, status, subscription_id, month, year)
+        values ${sql.join(
+          flatsSubscriptions.map(
+            (row) =>
+              sql`(${row.flatRecipientId}, 'pending', ${row.subscriptionId}, ${currentMonth}, ${currentYear})`,
+          ),
+          sql`,`,
+        )};
+        `);
+
+      billsResult = await db.execute<BillResultType>(sql`
+        select 
+        b.bill_id as "billId",
+        b.flat_recipient_id as "flatRecipientId",
+        u.name as "name",
+        concat(f.flat_number, f.flat_floor, f.flat_block) as "flat",
+        b.month as "month",
+        b.year as "year",
+        b.subscription_id as "subscriptionId",
+        s.charges as "charges",
+        b.status as "status",
+        b.created_at as "createdAt",
+        b.updated_at as "updatedAt"
+        from ${billsTable} b
+        join ${subscriptionsTable} s on s.subscription_id = b.subscription_id
+        join ${flatRecipientsTable} fr on fr.flat_recipient_id = b.flat_recipient_id
+        join ${usersTable} u on u.user_id = fr.owner_id
+        join ${flatsTable} f on f.flat_id = fr.flat_id
+        where fr.is_current_owner = ${true} and f.is_deleted = ${false}
+        ${month && sql` and b.month = ${month}`}
+        ${year && sql` and b.year = ${year}`}
+      `);
+
+      bills = billsResult.rows;
+    }
+
+    return res
+      .status(200)
+      .json({ bills, message: "All bills found successfully", success: true });
+  } catch (error) {
+    console.error("BILLS[ALL][GET]:", error);
+    return res.status(500).json({
+      error: "Something went wrong",
+      success: false,
+    });
+  }
+}
+
+async function updateBillHandler(req: Request, res: Response) {
+  try {
+    const { societyId } = req.society;
+    let { billId } = req.params;
+    const body = req.body;
+    console.log(
+      `Request received at /api/society/${societyId}/bills/${billId}`,
+    );
+
+    let validationResult = validateUuid
+      .extend({
+        paymentMode: z.enum(["cash", "upi", "online"]),
+        paidAt: z.iso.datetime().optional(),
+      })
+      .safeParse({ id: billId, ...body });
+
+    if (validationResult.error) {
+      return res.status(400).json({
+        error: validationResult.error.message,
+        success: false,
+      });
+    }
+
+    billId = validationResult.data.id;
+    let { paymentMode, paidAt } = validationResult.data;
+
+    const existingBillResult = await db.execute<BillSelectType>(sql`
+        select * from ${billsTable}
+        where bill_id = ${billId}
+      `);
+
+    const existingBill = existingBillResult.rows[0];
+
+    if (!existingBill) {
+      return res
+        .status(404)
+        .json({ error: "No bill found with such id", success: false });
+    }
+
+    if (existingBill.status == "paid") {
+      return res.status(400).json({
+        error: "Payment has already been made.",
+        success: false,
+      });
+    }
+
+    await db.execute(sql`
+        update ${billsTable}
+        set status = 'paid'
+        where bill_id = ${billId}
+    `);
+
+    const updatedBillResult = await db.execute<BillResultType>(sql`
+      select 
+        b.bill_id as "billId",
+        b.flat_recipient_id as "flatRecipientId",
+        u.name as "name",
+        concat(f.flat_number, ', ', f.flat_floor, ', ', f.flat_block) as "flat",
+        b.month as "month",
+        b.year as "year",
+        b.subscription_id as "subscriptionId",
+        s.charges as "charges",
+        b.status as "status",
+        b.created_at as "createdAt",
+        b.updated_at as "updatedAt"
+        from ${billsTable} b
+        join ${subscriptionsTable} s on s.subscription_id = b.subscription_id
+        join ${flatRecipientsTable} fr on fr.flat_recipient_id = b.flat_recipient_id
+        join ${usersTable} u on u.user_id = fr.owner_id
+        join ${flatsTable} f on f.flat_id = fr.flat_id
+        where b.bill_id = ${billId}
+      `);
+
+    const updatedBill = updatedBillResult.rows[0]!;
+
+    const columns = [sql`bill_id`, sql`amount`, sql`payment_via`];
+    const values = [updatedBill.billId, updatedBill.charges, paymentMode];
+
+    if (paidAt) {
+      columns.push(sql`paid_at`);
+      values.push(paidAt);
+    }
+
+    await db.execute(sql`
+      insert into ${paymentsTable} (${sql.join(columns, sql`, `)})
+      values (${sql.join(values, sql`, `)})
+    `);
+
+    return res.status(200).json({
+      message: "Bill has been updated successfully",
+      bill: updatedBill,
+      success: true,
+    });
+  } catch (error) {
+    console.error("BILLS[UPDATE][PATCH]:", error);
+    return res.status(500).json({
+      error: "Something went wrong",
+      success: false,
+    });
+  }
+}
+
+export { getAllBillsHandler, updateBillHandler };

@@ -287,6 +287,7 @@ export const billsTable = pgTable(
     year: integer("year").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
+      .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
   },
@@ -328,6 +329,7 @@ export const paymentsTable = pgTable("payments", {
   paymentVia: text("payment_via", { enum: paymentViaEnum }).notNull(),
   paidAt: timestamp("paid_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
+    .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
 });
