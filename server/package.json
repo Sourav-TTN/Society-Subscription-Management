@@ -27,6 +27,8 @@
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "jsonwebtoken": "^9.0.3",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "typescript": "^5.9.3",
