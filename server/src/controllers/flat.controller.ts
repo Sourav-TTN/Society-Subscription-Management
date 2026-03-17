@@ -14,6 +14,7 @@ import { db } from "../db/index.js";
 import { and, eq, ne, sql } from "drizzle-orm";
 import { validateUuid } from "../lib/utils.js";
 import type { Request, Response } from "express";
+import axios from "axios";
 
 async function getFlatHanlder(req: Request, res: Response) {
   try {
@@ -232,7 +233,7 @@ async function assignOwnerHandler(req: Request, res: Response) {
       });
     }
 
-    let [newRecipient] = await db
+    const [newRecipient] = await db
       .insert(flatRecipientsTable)
       .values({
         flatId,
@@ -246,7 +247,7 @@ async function assignOwnerHandler(req: Request, res: Response) {
       throw new Error("Unable to update owner for now.");
     }
 
-    const [existingRecipient] = await db
+    await db
       .update(flatRecipientsTable)
       .set({
         isCurrentOwner: false,
@@ -257,31 +258,12 @@ async function assignOwnerHandler(req: Request, res: Response) {
           ne(flatRecipientsTable.ownerId, newRecipient.ownerId),
           eq(flatRecipientsTable.flatId, flatId),
         ),
-      )
-      .returning();
-
-    let currentMonth = new Date().getMonth() + 1;
-    let currentYear = new Date().getFullYear();
+      );
 
     // TODO: Create bill for the new owner
-
-    // await db.transaction(async (tx) => {
-    //   let existingRecipientBillResult = await tx.execute(sql`
-    //     select
-    //       b.subscription_id as "subscriptionId",
-    //       b.bill_id as "billId",
-    //       b.flat_recipient_id as "flatRecipientId"
-    //     from ${billsTable} b
-    //     where b.flat_recipient_id = ${existingRecipient?.flatRecipientId}
-    //   `);
-
-    //   let existingBill = existingRecipientBillResult.rows[0];
-
-    //   await tx.execute(sql`
-    //     insert into ${billsTable} (flat_recipient_id, status, subscription_id, month, year)
-    //     values ${sql`(${newRecipient.flatRecipientId}, 'pending', ${existingBill?.subscriptionId}, ${currentMonth}, ${currentYear})`}
-    //   `);
-    // });
+    const response = await axios.post(
+      `${process.env.SERVER_URL}/api/society/${societyId}/bills/generate/${newRecipient.flatRecipientId}`,
+    );
 
     return res
       .status(201)
