@@ -1,8 +1,8 @@
-import type { Request, Response, NextFunction } from "express";
-import { validateUuid } from "../lib/utils.js";
 import { db } from "../db/index.js";
-import { societiesTable } from "../db/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { validateUuid } from "../lib/utils.js";
+import type { Request, Response, NextFunction } from "express";
+import { societiesTable, type SocietySelectType } from "../db/schema.js";
 
 const getSocietyMiddleware = async (
   req: Request,
@@ -21,10 +21,26 @@ const getSocietyMiddleware = async (
 
   societyId = validationResult.data.id;
 
-  const [society] = await db
-    .select()
-    .from(societiesTable)
-    .where(eq(societiesTable.societyId, societyId));
+  const societyResult = await db.execute<SocietySelectType>(sql`
+      select 
+        society_id as "societyId",
+        name as "name",
+        address as "address",
+        pin as "pin",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+       from ${societiesTable}
+      where society_id = ${societyId}
+    `);
+
+  const [society] = societyResult.rows;
+
+  console.log(society);
+
+  // const [society] = await db
+  //   .select()
+  //   .from(societiesTable)
+  //   .where(eq(societiesTable.societyId, societyId));
 
   if (!society) {
     return res.status(404).json({ error: "No society found", success: false });

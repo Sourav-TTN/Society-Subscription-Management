@@ -1,10 +1,11 @@
 import {
   flatsTable,
   usersTable,
+  billsTable,
   flatTypesTable,
   flatsInsertSchema,
-  flatRecipientsTable,
   subscriptionsTable,
+  flatRecipientsTable,
   type SubscriptionSelectType,
 } from "../db/schema.js";
 
@@ -96,13 +97,22 @@ async function createFlatHandler(req: Request, res: Response) {
     `);
 
     if (subscriptions.length == 0) {
-      return res
-        .status(400)
-        .json({
-          error: "Create subscription for the current month first.",
-          success: false,
-        });
+      return res.status(400).json({
+        error: "Create subscription for the current month first.",
+        success: false,
+      });
     }
+
+    // const newFlatResult = await db.execute<FlatSelectType>(sql`
+    //   insert into ${flatsTable} ()
+    //   values (${sql.join(
+    //     Object.keys(data),
+    //     sql`, `,
+    //   )})
+    //   returning *;
+    //   `);
+
+    // const [newFlat] = newFlatResult.rows;
 
     const [newFlat] = await db
       .insert(flatsTable)
@@ -222,7 +232,7 @@ async function assignOwnerHandler(req: Request, res: Response) {
       });
     }
 
-    const [newRecipient] = await db
+    let [newRecipient] = await db
       .insert(flatRecipientsTable)
       .values({
         flatId,
@@ -236,7 +246,7 @@ async function assignOwnerHandler(req: Request, res: Response) {
       throw new Error("Unable to update owner for now.");
     }
 
-    await db
+    const [existingRecipient] = await db
       .update(flatRecipientsTable)
       .set({
         isCurrentOwner: false,
@@ -247,9 +257,31 @@ async function assignOwnerHandler(req: Request, res: Response) {
           ne(flatRecipientsTable.ownerId, newRecipient.ownerId),
           eq(flatRecipientsTable.flatId, flatId),
         ),
-      );
+      )
+      .returning();
 
-    // TODO: Update bills for previous recipients
+    let currentMonth = new Date().getMonth() + 1;
+    let currentYear = new Date().getFullYear();
+
+    // TODO: Create bill for the new owner
+
+    // await db.transaction(async (tx) => {
+    //   let existingRecipientBillResult = await tx.execute(sql`
+    //     select
+    //       b.subscription_id as "subscriptionId",
+    //       b.bill_id as "billId",
+    //       b.flat_recipient_id as "flatRecipientId"
+    //     from ${billsTable} b
+    //     where b.flat_recipient_id = ${existingRecipient?.flatRecipientId}
+    //   `);
+
+    //   let existingBill = existingRecipientBillResult.rows[0];
+
+    //   await tx.execute(sql`
+    //     insert into ${billsTable} (flat_recipient_id, status, subscription_id, month, year)
+    //     values ${sql`(${newRecipient.flatRecipientId}, 'pending', ${existingBill?.subscriptionId}, ${currentMonth}, ${currentYear})`}
+    //   `);
+    // });
 
     return res
       .status(201)

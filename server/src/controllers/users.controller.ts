@@ -9,6 +9,9 @@ async function getAllUsersHandler(req: Request, res: Response) {
   try {
     const { societyId } = req.society;
     console.log("Request received at /api/society/" + societyId + "/users");
+
+    console.log("Society Id", societyId);
+
     const users = await db
       .select()
       .from(usersTable)

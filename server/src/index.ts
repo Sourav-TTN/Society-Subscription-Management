@@ -11,6 +11,7 @@ import flatRoute from "./routes/flat.route.js";
 import billsRoute from "./routes/bill.route.js";
 import usersRoute from "./routes/user.route.js";
 import adminRoute from "./routes/admin.route.js";
+import paymentRoute from "./routes/payment.route.js";
 import societyRoute from "./routes/society.route.js";
 import flatTypesRoute from "./routes/flat-types.route.js";
 import subscriptionRoute from "./routes/subscription.route.js";
@@ -62,6 +63,7 @@ app.use("/api/society", societyRoute);
 app.use("/api/society/:societyId/flats", flatRoute);
 app.use("/api/society/:societyId/users", usersRoute);
 app.use("/api/society/:societyId/bills", billsRoute);
+app.use("/api/society/:societyId/payments", paymentRoute);
 app.use("/api/society/:societyId/flat-types", flatTypesRoute);
 app.use("/api/society/:societyId/subscriptions", subscriptionRoute);
 
