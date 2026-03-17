@@ -1,10 +1,11 @@
 import {
   flatsTable,
   usersTable,
+  billsTable,
   flatTypesTable,
   flatsInsertSchema,
-  flatRecipientsTable,
   subscriptionsTable,
+  flatRecipientsTable,
   type SubscriptionSelectType,
 } from "../db/schema.js";
 
@@ -13,6 +14,7 @@ import { db } from "../db/index.js";
 import { and, eq, ne, sql } from "drizzle-orm";
 import { validateUuid } from "../lib/utils.js";
 import type { Request, Response } from "express";
+import axios from "axios";
 
 async function getFlatHanlder(req: Request, res: Response) {
   try {
@@ -96,13 +98,22 @@ async function createFlatHandler(req: Request, res: Response) {
     `);
 
     if (subscriptions.length == 0) {
-      return res
-        .status(400)
-        .json({
-          error: "Create subscription for the current month first.",
-          success: false,
-        });
+      return res.status(400).json({
+        error: "Create subscription for the current month first.",
+        success: false,
+      });
     }
+
+    // const newFlatResult = await db.execute<FlatSelectType>(sql`
+    //   insert into ${flatsTable} ()
+    //   values (${sql.join(
+    //     Object.keys(data),
+    //     sql`, `,
+    //   )})
+    //   returning *;
+    //   `);
+
+    // const [newFlat] = newFlatResult.rows;
 
     const [newFlat] = await db
       .insert(flatsTable)
@@ -249,7 +260,10 @@ async function assignOwnerHandler(req: Request, res: Response) {
         ),
       );
 
-    // TODO: Update bills for previous recipients
+    // TODO: Create bill for the new owner
+    const response = await axios.post(
+      `${process.env.SERVER_URL}/api/society/${societyId}/bills/generate/${newRecipient.flatRecipientId}`,
+    );
 
     return res
       .status(201)

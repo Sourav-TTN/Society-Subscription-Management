@@ -1,8 +1,10 @@
 import {
-  adminsTable,
+  flatsTable,
   flatTypesTable,
   subscriptionsTable,
+  flatRecipientsTable,
   subscriptionsInsertSchema,
+  type FlatRecipientSelectType,
 } from "../db/schema.js";
 
 import { z } from "zod";
@@ -157,12 +159,10 @@ async function createSubscriptionHandler(req: Request, res: Response) {
       .returning();
 
     if (!created) {
-      return res
-        .status(400)
-        .json({
-          error: "Can't create subscription right now.",
-          success: false,
-        });
+      return res.status(400).json({
+        error: "Can't create subscription right now.",
+        success: false,
+      });
     }
 
     const [subscription] = await db
@@ -294,11 +294,32 @@ async function updateSubscriptionHandler(req: Request, res: Response) {
 
     if (
       subscriptionYear < currentYear ||
-      (subscriptionYear === currentYear && subscriptionMonth <= currentMonth)
+      (subscriptionYear === currentYear && subscriptionMonth < currentMonth)
+    ) {
+      return res.status(400).json({
+        error: "You can't update earlier's month subscription.",
+        success: false,
+      });
+    }
+
+    const flatRecipientsResult = await db.execute<FlatRecipientSelectType>(sql`
+      select * from ${flatRecipientsTable} fr
+      join ${flatsTable} f on  f.flat_id = fr.flat_id
+      join ${flatTypesTable} ft on ft.flat_type_id = f.flat_type_id
+      join ${subscriptionsTable} s on s.flat_type_id = ft.flat_type_id
+      where s.subscription_id = ${subscriptionId} and fr.is_current_owner = ${true}
+    `);
+
+    const flatRecipients = flatRecipientsResult.rows;
+
+    if (
+      subscriptionYear === currentYear &&
+      subscriptionMonth == currentMonth &&
+      flatRecipients.length > 0
     ) {
       return res.status(400).json({
         error:
-          "You can't update the current's or earlier's month subscription.",
+          "You can't update the current's month subscription with living residents.",
         success: false,
       });
     }

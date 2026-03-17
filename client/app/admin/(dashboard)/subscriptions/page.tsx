@@ -1,7 +1,7 @@
 import { Container } from "@/components/container";
 import { SubscriptionsClientPage } from "./components/page-client";
 
-const FlatsPage = () => {
+const SubscriptionsPage = () => {
   return (
     <div>
       <Container>
@@ -11,4 +11,4 @@ const FlatsPage = () => {
   );
 };
 
-export default FlatsPage;
+export default SubscriptionsPage;
