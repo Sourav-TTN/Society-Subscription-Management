@@ -72,7 +72,7 @@ export const ReportsClientPage = () => {
       setSelectedMonth(month);
 
       const monthText = month ? monthNames[month - 1] : "All";
-      toast.success(`Reports loaded for ${monthText} ${year}`);
+      // toast.success(`Reports loaded for ${monthText} ${year}`);
     } catch (error) {
       console.error("Error fetching reports:", error);
       toast.error("Failed to load reports");
@@ -114,10 +114,6 @@ export const ReportsClientPage = () => {
       const url = URL.createObjectURL(response);
       const link = document.createElement("a");
       link.href = url;
-
-      const monthText = selectedMonth
-        ? monthNames[selectedMonth - 1]
-        : "All-Months";
 
       link.target = "_blank";
       document.body.appendChild(link);

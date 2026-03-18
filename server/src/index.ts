@@ -15,7 +15,9 @@ import reportRoute from "./routes/report.route.js";
 import paymentRoute from "./routes/payment.route.js";
 import societyRoute from "./routes/society.route.js";
 import flatTypesRoute from "./routes/flat-types.route.js";
+import notificationRoute from "./routes/notification.route.js";
 import subscriptionRoute from "./routes/subscription.route.js";
+import flatRecipientRoute from "./routes/flat-recipient.route.js";
 
 configurePassport();
 
@@ -68,6 +70,8 @@ app.use("/api/society/:societyId/reports", reportRoute);
 app.use("/api/society/:societyId/payments", paymentRoute);
 app.use("/api/society/:societyId/flat-types", flatTypesRoute);
 app.use("/api/society/:societyId/subscriptions", subscriptionRoute);
+app.use("/api/society/:societyId/notifications", notificationRoute);
+app.use("/api/society/:societyId/flat-recipients", flatRecipientRoute);
 
 app.listen(PORT, () => {
   console.log("Server is running on port", PORT);
