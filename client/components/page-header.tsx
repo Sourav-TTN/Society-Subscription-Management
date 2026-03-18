@@ -1,5 +1,6 @@
 "use client";
 
+import { ReactNode } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/button";
 
@@ -8,6 +9,7 @@ interface PageHeaderProps {
   description?: string;
   actionLabel?: string;
   onAction?: () => void;
+  children?: ReactNode;
 }
 
 export const PageHeader = ({
@@ -15,6 +17,7 @@ export const PageHeader = ({
   onAction,
   description,
   actionLabel,
+  children,
 }: PageHeaderProps) => {
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
@@ -24,12 +27,15 @@ export const PageHeader = ({
           <p className="text-sm text-muted-foreground mt-1">{description}</p>
         )}
       </div>
-      {actionLabel && onAction && (
-        <Button onClick={onAction}>
-          <Plus className="h-4 w-4 mr-2" />
-          {actionLabel}
-        </Button>
-      )}
+      <div className="flex items-center gap-3">
+        {children}
+        {actionLabel && onAction && (
+          <Button onClick={onAction}>
+            <Plus className="h-4 w-4 mr-2" />
+            {actionLabel}
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
