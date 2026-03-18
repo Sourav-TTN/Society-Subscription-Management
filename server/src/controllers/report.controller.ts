@@ -70,8 +70,8 @@ async function getReportsDataHandler(req: Request, res: Response) {
 
     const filterValidation = z
       .object({
-        month: z.number().int().min(1).max(12).optional(),
-        year: z.number().int().min(1000).max(9999).optional(),
+        month: z.coerce.number().int().min(1).max(12).optional(),
+        year: z.coerce.number().int().min(1000).max(9999).optional(),
       })
       .safeParse(req.query);
 

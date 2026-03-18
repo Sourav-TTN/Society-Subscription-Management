@@ -1,7 +1,6 @@
 import {
   flatsTable,
   usersTable,
-  billsTable,
   flatTypesTable,
   flatsInsertSchema,
   subscriptionsTable,
@@ -10,11 +9,11 @@ import {
 } from "../db/schema.js";
 
 import { z } from "zod";
+import axios from "axios";
 import { db } from "../db/index.js";
 import { and, eq, ne, sql } from "drizzle-orm";
 import { validateUuid } from "../lib/utils.js";
 import type { Request, Response } from "express";
-import axios from "axios";
 
 async function getFlatHanlder(req: Request, res: Response) {
   try {
