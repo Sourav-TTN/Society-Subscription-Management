@@ -187,7 +187,8 @@ async function getAllBillsHandler(req: Request, res: Response) {
           join ${flatRecipientsTable} fr on fr.flat_recipient_id = b.flat_recipient_id
           join ${usersTable} u on u.user_id = fr.owner_id
           join ${flatsTable} f on f.flat_id = fr.flat_id
-          where fr.is_current_owner = ${true} and f.is_deleted = ${false}  
+          where (fr.is_current_owner = ${true} and f.is_deleted = ${false}) 
+          or (fr.is_current_owner = ${false} and f.is_deleted = ${false} and b.status = 'pending')
           ${month && sql` and b.month = ${month}`}
           ${year && sql` and b.year = ${year}`}
         `);
@@ -417,8 +418,7 @@ async function getAllPendingBillsHandler(req: Request, res: Response) {
       join ${flatRecipientsTable} fr on fr.flat_recipient_id = b.flat_recipient_id
       join ${usersTable} u on u.user_id = fr.owner_id
       join ${flatsTable} f on f.flat_id = fr.flat_id
-      where fr.is_current_owner = ${true} 
-        and f.is_deleted = ${false}
+      where f.is_deleted = ${false}
         and b.month = ${currentMonth}
         and b.year = ${currentYear}
         and b.status = 'pending'

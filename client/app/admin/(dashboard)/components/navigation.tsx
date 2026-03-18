@@ -29,6 +29,10 @@ const routes = [
     href: "/admin/reports",
     label: "Reports",
   },
+  {
+    href: "/admin/notifications",
+    label: "Notifications",
+  },
 ];
 
 const Navigation = () => {
