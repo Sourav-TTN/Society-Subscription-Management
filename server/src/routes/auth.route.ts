@@ -14,9 +14,6 @@ router
   .get(
     "/google",
     passport.authenticate("google", { scope: ["profile", "email"] }),
-    // (req, res) => {
-    //   return res.status(200).json({ message: "Route is available" });
-    // },
   );
 
 export default router;

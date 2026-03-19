@@ -18,6 +18,8 @@ import flatTypesRoute from "./routes/flat-types.route.js";
 import notificationRoute from "./routes/notification.route.js";
 import subscriptionRoute from "./routes/subscription.route.js";
 import flatRecipientRoute from "./routes/flat-recipient.route.js";
+import { getUserMiddleware } from "./middlewares/user.middleware.js";
+import { getUserHandler } from "./controllers/users.controller.js";
 
 configurePassport();
 
@@ -54,11 +56,13 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
 
-app.get("/", (req, res) => {
-  return res
-    .status(200)
-    .json({ message: "API is working fine", success: true });
-});
+app
+  .get("/", (req, res) => {
+    return res
+      .status(200)
+      .json({ message: "API is working fine", success: true });
+  })
+  .get("/api/users/get-user", getUserMiddleware, getUserHandler);
 
 app.use("/auth", authRoute);
 app.use("/api/admin", adminRoute);

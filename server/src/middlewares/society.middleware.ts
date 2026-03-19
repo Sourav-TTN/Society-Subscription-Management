@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { validateUuid } from "../lib/utils.js";
 import type { Request, Response, NextFunction } from "express";
 import { societiesTable, type SocietySelectType } from "../db/schema.js";

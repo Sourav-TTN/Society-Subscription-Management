@@ -28,6 +28,8 @@ node_modules
 .DS_Store
 *.pem
 
+service-key.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*
