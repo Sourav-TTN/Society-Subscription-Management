@@ -13,6 +13,9 @@ function configurePassport() {
         callbackURL: `${process.env.SERVER_URL}/auth/google/callback`,
       },
       async function (accessToken, refreshToken, profile, done) {
+        console.log("Access Token:", accessToken);
+        console.log("Refresh Token:", refreshToken);
+        console.log("User:", profile);
         try {
           const email = profile._json.email!;
 
@@ -32,6 +35,8 @@ function configurePassport() {
               email: email,
             })
             .returning();
+
+          console.log("Admin:", admin);
 
           done(null, admin);
         } catch (error) {
