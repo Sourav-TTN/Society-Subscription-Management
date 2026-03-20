@@ -1,0 +1,2 @@
+ALTER TABLE "notifications" ADD COLUMN "society_id" uuid NOT NULL;--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_society_id_societies_society_id_fk" FOREIGN KEY ("society_id") REFERENCES "public"."societies"("society_id") ON DELETE no action ON UPDATE no action;

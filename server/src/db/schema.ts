@@ -357,8 +357,12 @@ export const notificationsTable = pgTable("notifications", {
     .notNull()
     .references(() => adminsTable.adminId),
   content: text("content").notNull(),
+  societyId: uuid("society_id")
+    .notNull()
+    .references(() => societiesTable.societyId),
   sentAt: timestamp("sent_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
+    .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
 });
@@ -391,6 +395,7 @@ export const notificationRecipientsTable = pgTable("notification_recipients", {
     .references(() => flatRecipientsTable.flatRecipientId),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
+    .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
 });

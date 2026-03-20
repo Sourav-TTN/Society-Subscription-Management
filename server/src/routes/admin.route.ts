@@ -3,17 +3,22 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { setAdmin } from "../lib/admin-auth.js";
 import { societiesTable, type AdminSelectType } from "../db/schema.js";
-import { societyAddHandler } from "../controllers/admin.controller.js";
 import { getAdminMiddleware } from "../middlewares/admin.middleware.js";
+import {
+  societyAddHandler,
+  profileUpdateHandler,
+} from "../controllers/admin.controller.js";
 
 const route = express.Router({ mergeParams: true });
 
 route
   .patch("/add-society", societyAddHandler)
+  .patch("/profile-update/:adminId", profileUpdateHandler)
   .get("/auth/failure", (req, res) => {
     return res.redirect(`${process.env.CLIENT_URL}/admin/login`);
   })
   .get("/auth/success", (req, res) => {
+    console.log("Request User:", req.user);
     if (req.user) {
       const token = setAdmin(req.user as AdminSelectType);
       res.cookie("admin-auth-token", token, {

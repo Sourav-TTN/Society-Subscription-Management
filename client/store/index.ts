@@ -1,3 +1,4 @@
+import { userReducer } from "./slices/user-slice";
 import { configureStore } from "@reduxjs/toolkit";
 import { adminReducer } from "./slices/admin-slice";
 import { societyReducer } from "./slices/society-slice";
@@ -7,6 +8,7 @@ export const store = configureStore({
   reducer: {
     adminReducer,
     societyReducer,
+    userReducer,
   },
 });
 

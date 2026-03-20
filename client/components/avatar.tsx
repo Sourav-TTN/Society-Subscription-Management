@@ -1,6 +1,7 @@
 "use client";
 import toast from "react-hot-toast";
 import { LogOut } from "lucide-react";
+import { UserType } from "@/types/user";
 import { AdminType } from "@/types/admin";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/button";
@@ -8,7 +9,7 @@ import { Skeleton } from "@/components/skeleton";
 import { useEffect, useRef, useState } from "react";
 
 interface UserAvatarProps {
-  user?: AdminType | null;
+  user?: UserType | AdminType | null;
 }
 
 const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
