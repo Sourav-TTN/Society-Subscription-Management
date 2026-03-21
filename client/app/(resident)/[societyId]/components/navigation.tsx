@@ -16,7 +16,7 @@ const routes = [
     label: "Subscriptions",
   },
   {
-    href: "payments",
+    href: "pay-now",
     label: "Payments",
   },
   {
