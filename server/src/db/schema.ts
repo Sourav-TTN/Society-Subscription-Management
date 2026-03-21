@@ -422,3 +422,38 @@ export type NotificationRecipientInsertType =
 export const notificationRecipientsInsertSchema = createInsertSchema(
   notificationRecipientsTable,
 );
+
+export const firebaseTokensTable = pgTable("firebase_tokens", {
+  tokenId: text("token_id").unique().notNull().primaryKey(),
+  societyId: uuid("society_id")
+    .notNull()
+    .references(() => societiesTable.societyId),
+  flatRecipientId: uuid("flat_recipient_id")
+    .notNull()
+    .references(() => flatRecipientsTable.flatRecipientId),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const firebaseTokensRelations = relations(
+  firebaseTokensTable,
+  ({ one }) => ({
+    society: one(societiesTable, {
+      fields: [firebaseTokensTable.societyId],
+      references: [societiesTable.societyId],
+    }),
+    flatRecipient: one(flatRecipientsTable, {
+      fields: [firebaseTokensTable.flatRecipientId],
+      references: [flatRecipientsTable.flatRecipientId],
+    }),
+  }),
+);
+
+export type FirebaseTokensSelectType = typeof firebaseTokensTable.$inferSelect;
+export type FirebaseTokensInsertType = typeof firebaseTokensTable.$inferInsert;
+
+export const firebaseTokensInsertSchema =
+  createInsertSchema(firebaseTokensTable);

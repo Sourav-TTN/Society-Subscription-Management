@@ -35,7 +35,7 @@ const getSocietyMiddleware = async (
 
   const [society] = societyResult.rows;
 
-  console.log(society);
+  // console.log(society);
 
   // const [society] = await db
   //   .select()
