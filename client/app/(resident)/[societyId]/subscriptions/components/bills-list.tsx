@@ -13,7 +13,6 @@ import { Badge } from "@/components/badge";
 import { Button } from "@/components/button";
 import { UserBillResultType } from "./client-page";
 import { IndianRupee, Clock, CheckCircle } from "lucide-react";
-import Link from "next/link";
 
 interface BillsListProps {
   bills: UserBillResultType[];
@@ -115,12 +114,13 @@ export const BillsList = ({ bills, onPayBill, monthNames }: BillsListProps) => {
 
               <TableCell className="text-right">
                 {bill.status === "pending" && (
-                  <Link
-                    href={`/pay-bill/${bill.billId}`}
-                    className="text-primary hover:text-primary hover:underline italic"
+                  <Button
+                    variant="outline"
+                    onClick={() => onPayBill(bill)}
+                    className="text-primary hover:bg-primary/10 hover:text-primary"
                   >
                     Pay Now
-                  </Link>
+                  </Button>
                 )}
               </TableCell>
             </TableRow>

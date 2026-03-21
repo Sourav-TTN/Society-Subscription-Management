@@ -91,10 +91,6 @@ export const PaymentsClientPage = () => {
     );
   }
 
-  if (loading && pendingBills.length === 0) {
-    return <Loader />;
-  }
-
   return (
     <div className="space-y-6">
       <PageHeader
