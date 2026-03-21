@@ -1,31 +1,47 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getMessaging, getToken, isSupported } from "firebase/messaging";
+import { axiosIns } from "./axios";
 
-const {
-  NEXT_PUBLIC_FIREBASE_API_KEY,
-  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  NEXT_PUBLIC_FIREBASE_APP_ID,
-  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-} = process.env;
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+export const getMessagingInstance = async () => {
+  const supported = await isSupported();
+  if (!supported) return null;
+
+  return getMessaging(app);
+};
+
+export const messagingInstance = await getMessagingInstance();
+
+export const requestPermission = async (societyId: string, userId: string) => {
+  if (!messagingInstance) return null;
+
+  const permission = await Notification.requestPermission();
+
+  if (permission === "granted") {
+    const token = await getToken(messagingInstance, {
+      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+    });
+
+    await axiosIns.post(`/api/society/${societyId}/firebase/save-token`, {
+      token,
+      userId,
+    });
+
+    return token;
+  }
+
+  return null;
+};
+
+export const getMessagingSafe = async () => {
+  return await getMessagingInstance();
+};

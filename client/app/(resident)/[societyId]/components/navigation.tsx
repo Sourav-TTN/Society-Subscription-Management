@@ -4,27 +4,29 @@ import { useState } from "react";
 import { useMedia } from "react-use";
 import NavButton from "./nav-button";
 import { usePathname, useRouter } from "next/navigation";
+import { useAppSelector } from "@/store";
 
 const routes = [
   {
-    href: "/admin/dashboard",
+    href: "dashboard",
     label: "Overview",
   },
   {
-    href: "/admin/subscriptions",
+    href: "subscriptions",
     label: "Subscriptions",
   },
   {
-    href: "/admin/payments",
+    href: "payments",
     label: "Payments",
   },
   {
-    href: "/admin/notifications",
+    href: "notifications",
     label: "Notifications",
   },
 ];
 
 const Navigation = () => {
+  const { user } = useAppSelector((store) => store.userReducer);
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -44,7 +46,9 @@ const Navigation = () => {
       {routes.map((route) => (
         <NavButton
           key={route.href}
-          href={route.href}
+          href={
+            user?.email ? `/${user.userId}/${route.href}` : `/${route.href}`
+          }
           label={route.label}
           isActive={pathname === route.href}
         />
