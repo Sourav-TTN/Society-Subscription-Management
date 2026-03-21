@@ -3,6 +3,7 @@ import {
   updateBillHandler,
   getAllBillsHandler,
   generateBillHandler,
+  getAllUserBillsHandler,
   getAllPendingBillsHandler,
 } from "../controllers/bills.controller.js";
 import { getSocietyMiddleware } from "../middlewares/society.middleware.js";
@@ -15,6 +16,7 @@ router
   .get("/", getAllBillsHandler)
   .get("/pending", getAllPendingBillsHandler)
   .post("/generate/:flatRecipientId", generateBillHandler)
+  .get("/users/:userId", getAllUserBillsHandler)
   .patch("/:billId", updateBillHandler);
 
 export default router;
