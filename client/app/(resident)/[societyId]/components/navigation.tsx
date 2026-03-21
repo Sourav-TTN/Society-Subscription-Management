@@ -50,7 +50,7 @@ const Navigation = () => {
             user?.email ? `/${user.userId}/${route.href}` : `/${route.href}`
           }
           label={route.label}
-          isActive={pathname === route.href}
+          isActive={pathname === `/${user?.userId}/${route.href}`}
         />
       ))}
     </nav>
