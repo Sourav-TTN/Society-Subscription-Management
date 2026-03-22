@@ -4,6 +4,7 @@ import {
   getCompleteDashboardDataHandler,
   getMonthlyCollectionTrendsHandler,
   getPaymentMethodDistributionHandler,
+  getCompleteUserDashboardDataHandler,
 } from "../controllers/dashboard.controller.js";
 import { getSocietyMiddleware } from "../middlewares/society.middleware.js";
 
@@ -16,5 +17,7 @@ router
   .get("/revenue-vs-outstanding", getRevenueVsOutstandingHandler)
   .get("/monthly-collection-trend", getMonthlyCollectionTrendsHandler)
   .get("/payment-method-distribution", getPaymentMethodDistributionHandler);
+
+router.get("/users/:userId/complete", getCompleteUserDashboardDataHandler);
 
 export default router;
