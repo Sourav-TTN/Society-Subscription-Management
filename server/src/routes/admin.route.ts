@@ -50,6 +50,31 @@ route
       society,
       success: true,
     });
+  })
+  .get("/logout", getAdminMiddleware, (req, res) => {
+    try {
+      const admin = req.admin;
+
+      const adminAuthCookieToken = setAdmin(admin as AdminSelectType, 0);
+
+      res.cookie("admin-auth-token", adminAuthCookieToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV == "production" ? "none" : "lax",
+        maxAge: 0,
+      });
+
+      return res.status(200).json({
+        message: "Logout successfully",
+        success: true,
+      });
+    } catch (error) {
+      console.error("ADMIN[LOGOUT][GET]:", error);
+      return res.status(500).json({
+        error: "Something went wrong",
+        success: false,
+      });
+    }
   });
 
 export default route;

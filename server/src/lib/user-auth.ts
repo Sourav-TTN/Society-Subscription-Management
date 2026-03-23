@@ -3,7 +3,7 @@ import type { UserSelectType } from "../db/schema.js";
 
 const secretKey = process.env.JWT_SECRET_KEY!;
 
-const setUser = (user: UserSelectType) => {
+const setUser = (user: UserSelectType, expiresIn?: number) => {
   const token = jwt.sign(
     {
       id: user.userId,
@@ -11,7 +11,7 @@ const setUser = (user: UserSelectType) => {
       societyId: user.societyId,
     },
     secretKey,
-    { expiresIn: 2 * 7 * 24 * 60 * 60 * 1000 },
+    { expiresIn: expiresIn || 2 * 7 * 24 * 60 * 60 * 1000 },
   );
   return token;
 };

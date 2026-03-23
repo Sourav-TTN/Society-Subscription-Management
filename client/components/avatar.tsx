@@ -3,10 +3,11 @@ import toast from "react-hot-toast";
 import { LogOut } from "lucide-react";
 import { UserType } from "@/types/user";
 import { AdminType } from "@/types/admin";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/button";
 import { Skeleton } from "@/components/skeleton";
 import { useEffect, useRef, useState } from "react";
+import { axiosIns } from "@/lib/axios";
 
 interface UserAvatarProps {
   user?: UserType | AdminType | null;
@@ -16,6 +17,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const logoutbtnref = useRef<HTMLButtonElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -37,6 +39,22 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
     return <Skeleton className="w-36 h-10" />;
   }
 
+  const handleLogout = async () => {
+    try {
+      if (pathname.startsWith("/admin")) {
+        const res = await axiosIns.get("/api/admin/logout");
+        console.log(res.data);
+      } else {
+        const res = await axiosIns.get("/api/users/logout");
+        console.log(res.data);
+      }
+      toast.success("Logged out successfully");
+      router.push("/sign-in");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="relative flex w-36 flex-col">
       <Button
@@ -48,10 +66,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
       </Button>
       {isOpen && (
         <Button
-          onClick={() => {
-            toast.success("Logged out successfully");
-            router.push("/sign-in");
-          }}
+          onClick={handleLogout}
           ref={logoutbtnref}
           className="absolute top-12 inset-x-0 text-black bg-background hover:bg-muted/90"
         >

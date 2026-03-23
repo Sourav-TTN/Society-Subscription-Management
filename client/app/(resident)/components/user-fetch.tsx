@@ -7,6 +7,8 @@ import { Loader } from "@/components/loader";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { setSociety } from "@/store/slices/society-slice";
 import { clearUser, setLoading, setUser } from "@/store/slices/user-slice";
+import { getMessagingSafe } from "@/lib/firebase";
+import { setupForegroundListener } from "@/lib/foreground";
 
 export const UserFetch = () => {
   const { loading } = useAppSelector((store) => store.userReducer);
@@ -32,6 +34,17 @@ export const UserFetch = () => {
     };
 
     getUser();
+  }, []);
+
+  useEffect(() => {
+    const initializeForegroundListener = async () => {
+      const messaging = await getMessagingSafe();
+      if (messaging) {
+        setupForegroundListener(messaging);
+      }
+    };
+
+    initializeForegroundListener();
   }, []);
 
   if (loading) {
