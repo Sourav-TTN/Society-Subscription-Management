@@ -1,0 +1,2 @@
+ALTER TABLE "firebase_tokens" ADD COLUMN "flat_recipient_id" uuid NOT NULL;--> statement-breakpoint
+ALTER TABLE "firebase_tokens" ADD CONSTRAINT "firebase_tokens_flat_recipient_id_flat_recipients_flat_recipient_id_fk" FOREIGN KEY ("flat_recipient_id") REFERENCES "public"."flat_recipients"("flat_recipient_id") ON DELETE no action ON UPDATE no action;

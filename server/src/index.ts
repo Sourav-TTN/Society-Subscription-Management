@@ -4,15 +4,15 @@ import express from "express";
 import passport from "passport";
 import session from "express-session";
 import cookieParser from "cookie-parser";
+
 import { configurePassport } from "./services/passport.js";
-<<<<<<< Updated upstream
-=======
 import {
   getUserHandler,
   logoutUserHandler,
 } from "./controllers/users.controller.js";
 import { getUserMiddleware } from "./middlewares/user.middleware.js";
->>>>>>> Stashed changes
+import { getUserHandler } from "./controllers/users.controller.js";
+import { getUserMiddleware } from "./middlewares/user.middleware.js";
 
 import authRoute from "./routes/auth.route.js";
 import flatRoute from "./routes/flat.route.js";
@@ -22,12 +22,12 @@ import adminRoute from "./routes/admin.route.js";
 import reportRoute from "./routes/report.route.js";
 import paymentRoute from "./routes/payment.route.js";
 import societyRoute from "./routes/society.route.js";
+import firebaseRoute from "./routes/firebase.route.js";
+import dashboardRoute from "./routes/dashboard.route.js";
 import flatTypesRoute from "./routes/flat-types.route.js";
 import notificationRoute from "./routes/notification.route.js";
 import subscriptionRoute from "./routes/subscription.route.js";
 import flatRecipientRoute from "./routes/flat-recipient.route.js";
-import { getUserMiddleware } from "./middlewares/user.middleware.js";
-import { getUserHandler } from "./controllers/users.controller.js";
 
 configurePassport();
 
@@ -81,6 +81,8 @@ app.use("/api/society/:societyId/users", usersRoute);
 app.use("/api/society/:societyId/bills", billsRoute);
 app.use("/api/society/:societyId/reports", reportRoute);
 app.use("/api/society/:societyId/payments", paymentRoute);
+app.use("/api/society/:societyId/firebase", firebaseRoute);
+app.use("/api/society/:societyId/dashboard", dashboardRoute);
 app.use("/api/society/:societyId/flat-types", flatTypesRoute);
 app.use("/api/society/:societyId/subscriptions", subscriptionRoute);
 app.use("/api/society/:societyId/notifications", notificationRoute);

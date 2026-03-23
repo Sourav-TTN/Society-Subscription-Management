@@ -18,6 +18,7 @@ route
     return res.redirect(`${process.env.CLIENT_URL}/admin/login`);
   })
   .get("/auth/success", (req, res) => {
+    console.log("Request User:", req.user);
     if (req.user) {
       const token = setAdmin(req.user as AdminSelectType);
       res.cookie("admin-auth-token", token, {

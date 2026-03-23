@@ -6,7 +6,6 @@ import type { Request, Response } from "express";
 
 import {
   flatsTable,
-  statusEnum,
   usersTable,
   billsTable,
   paymentsTable,
@@ -14,6 +13,7 @@ import {
   subscriptionsTable,
   type BillSelectType,
   flatRecipientsTable,
+  type UserSelectType,
 } from "../db/schema.js";
 
 type BillResultType = {
@@ -527,9 +527,209 @@ async function getAllPendingBillsHandler(req: Request, res: Response) {
   }
 }
 
+async function getAllUserBillsHandler(req: Request, res: Response) {
+  try {
+    const { societyId } = req.society;
+    let { userId } = req.params;
+
+    console.log(
+      `Request received at /api/society/${societyId}/bills/users/${userId}`,
+    );
+
+    const validationResult = validateUuid.safeParse({ id: userId });
+
+    if (!validationResult.success) {
+      return res.status(400).json({
+        error: validationResult.error.message,
+        success: false,
+      });
+    }
+
+    userId = validationResult.data.id;
+
+    const userResult = await db.execute<UserSelectType>(sql`
+      select 
+        u.name as "name",
+        u.email as "email",
+        u.society_id as "societyId",
+        u.user_id as "userId",
+        u.created_at as "createdAt",
+        u.updated_at as "updatedAt"
+      from ${usersTable} u
+      where u.user_id = ${userId} and u.society_id = ${societyId}
+    `);
+
+    const user = userResult.rows[0];
+
+    if (!user) {
+      return res.status(404).json({
+        error: "No user found with such id",
+        success: false,
+      });
+    }
+
+    let query = req.query;
+
+    const filterValidationResult = z
+      .object({
+        month: z.coerce.number().int().min(1).max(12).optional(),
+        year: z.coerce.number().int().min(1000).max(9999).optional(),
+      })
+      .safeParse(query);
+
+    if (filterValidationResult.error) {
+      return res
+        .status(400)
+        .json({ error: filterValidationResult.error.message, success: false });
+    }
+
+    const { month, year } = filterValidationResult.data;
+
+    type UserBillResultType = BillResultType & {
+      from: Date;
+      to: Date | null;
+      paidAt: Date | null;
+      paymentMode: "cash" | "upi" | "online" | null;
+      amount: number;
+    };
+
+    const userBillsResult = await db.execute<UserBillResultType>(sql`
+      select
+        b.bill_id as "billId",
+        b.flat_recipient_id as "flatRecipientId",
+        u.name as "name",
+        concat(f.flat_number, ', ', f.flat_floor, ', ', f.flat_block) as "flat",
+        fr.from as "from",
+        fr.to as "to",
+        b.month as "month",
+        b.year as "year",
+        b.subscription_id as "subscriptionId",
+        s.charges as "charges",
+        b.status as "status",
+        p.paid_at as "paidAt",
+        p.payment_via as "paymentMode",
+        p.amount as "amount",
+        b.created_at as "createdAt",
+        b.updated_at as "updatedAt"
+      from ${billsTable} b
+      left join ${paymentsTable} p on p.bill_id = b.bill_id
+      join ${subscriptionsTable} s on s.subscription_id = b.subscription_id
+      join ${flatRecipientsTable} fr on fr.flat_recipient_id = b.flat_recipient_id
+      join ${usersTable} u on u.user_id = fr.owner_id
+      join ${flatsTable} f on f.flat_id = fr.flat_id
+      where fr.owner_id = ${userId}
+        and f.society_id = ${societyId}
+        ${month !== undefined ? sql` and b.month = ${month}` : sql``}
+        ${year !== undefined ? sql` and b.year = ${year}` : sql``}
+      order by b.year desc, b.month desc
+    `);
+
+    const bills = userBillsResult.rows;
+
+    return res.status(200).json({
+      message: "User bills retrieved successfully",
+      bills,
+      success: true,
+    });
+  } catch (error) {
+    console.error("BILLS[USER][GET]:", error);
+    return res.status(500).json({
+      error: "Something went wrong",
+      success: false,
+    });
+  }
+}
+
+async function getAllPendingUserBillsHandler(req: Request, res: Response) {
+  try {
+    const { societyId } = req.society;
+    let { userId } = req.params;
+
+    console.log(
+      `Request received at /api/society/${societyId}/bills/users/${userId}/pending`,
+    );
+
+    const validationResult = validateUuid.safeParse({ id: userId });
+
+    if (!validationResult.success) {
+      return res.status(400).json({
+        error: validationResult.error.message,
+        success: false,
+      });
+    }
+
+    userId = validationResult.data.id;
+
+    const userResult = await db.execute<UserSelectType>(sql`
+      select
+        u.name as "name",
+        u.email as "email",
+        u.society_id as "societyId",
+        u.user_id as "userId",
+        u.created_at as "createdAt",
+        u.updated_at as "updatedAt"
+      from ${usersTable} u
+      where u.user_id = ${userId} and u.society_id = ${societyId}
+    `);
+
+    const user = userResult.rows[0];
+
+    if (!user) {
+      return res.status(404).json({
+        error: "No user found with such id",
+        success: false,
+      });
+    }
+
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    const userBillsResult = await db.execute<BillResultType>(sql`
+      select
+        b.bill_id as "billId",
+        b.flat_recipient_id as "flatRecipientId",
+        u.name as "name",
+        concat(f.flat_number, ', ', f.flat_floor, ', ', f.flat_block) as "flat",
+        b.month as "month",
+        b.year as "year",
+        b.subscription_id as "subscriptionId",
+        s.charges as "charges",
+        b.status as "status",
+        b.created_at as "createdAt",
+        b.updated_at as "updatedAt"
+      from ${billsTable} b
+      join ${subscriptionsTable} s on s.subscription_id = b.subscription_id
+      join ${flatRecipientsTable} fr on fr.flat_recipient_id = b.flat_recipient_id
+      join ${usersTable} u on u.user_id = fr.owner_id
+      join ${flatsTable} f on f.flat_id = fr.flat_id
+      where fr.owner_id = ${userId}
+        and f.society_id = ${societyId}
+        and b.month = ${currentMonth}
+       and b.year = ${currentYear}
+        and b.status = 'pending'
+    `);
+
+    const bills = userBillsResult.rows;
+
+    return res.status(200).json({
+      message: "User bills retrieved successfully",
+      bills,
+      success: true,
+    });
+  } catch (error) {
+    console.error("BILLS[USER][PENDING][GET]:", error);
+    return res.status(500).json({
+      error: "Something went wrong",
+      success: false,
+    });
+  }
+}
+
 export {
   updateBillHandler,
   getAllBillsHandler,
   generateBillHandler,
+  getAllUserBillsHandler,
   getAllPendingBillsHandler,
+  getAllPendingUserBillsHandler,
 };
