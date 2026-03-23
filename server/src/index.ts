@@ -4,20 +4,12 @@ import express from "express";
 import passport from "passport";
 import session from "express-session";
 import cookieParser from "cookie-parser";
-<<<<<<< Updated upstream
 import { configurePassport } from "./services/passport.js";
-<<<<<<< Updated upstream
-=======
-=======
 
->>>>>>> Stashed changes
 import {
   getUserHandler,
   logoutUserHandler,
 } from "./controllers/users.controller.js";
-import { configurePassport } from "./services/passport.js";
-import { getUserMiddleware } from "./middlewares/user.middleware.js";
-
 import authRoute from "./routes/auth.route.js";
 import flatRoute from "./routes/flat.route.js";
 import billsRoute from "./routes/bill.route.js";
@@ -31,7 +23,6 @@ import notificationRoute from "./routes/notification.route.js";
 import subscriptionRoute from "./routes/subscription.route.js";
 import flatRecipientRoute from "./routes/flat-recipient.route.js";
 import { getUserMiddleware } from "./middlewares/user.middleware.js";
-import { getUserHandler } from "./controllers/users.controller.js";
 
 configurePassport();
 
