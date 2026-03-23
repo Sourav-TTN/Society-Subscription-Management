@@ -6,12 +6,11 @@ import session from "express-session";
 import cookieParser from "cookie-parser";
 
 import { configurePassport } from "./services/passport.js";
+
 import {
   getUserHandler,
   logoutUserHandler,
 } from "./controllers/users.controller.js";
-import { getUserMiddleware } from "./middlewares/user.middleware.js";
-
 import authRoute from "./routes/auth.route.js";
 import flatRoute from "./routes/flat.route.js";
 import billsRoute from "./routes/bill.route.js";
