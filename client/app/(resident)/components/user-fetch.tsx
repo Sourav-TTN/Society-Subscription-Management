@@ -3,12 +3,12 @@
 import { useEffect } from "react";
 import { axiosIns } from "@/lib/axios";
 import { Loader } from "@/components/loader";
+import { getMessagingSafe } from "@/lib/firebase";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { setSociety } from "@/store/slices/society-slice";
-import { clearUser, setLoading, setUser } from "@/store/slices/user-slice";
-import { getMessagingSafe } from "@/lib/firebase";
 import { setupForegroundListener } from "@/lib/foreground";
+import { clearUser, setLoading, setUser } from "@/store/slices/user-slice";
 
 export const UserFetch = () => {
   const { loading } = useAppSelector((store) => store.userReducer);

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Button } from "@/components/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/button";
 
 interface NavButtonProps {
   label: string;
@@ -8,7 +8,11 @@ interface NavButtonProps {
   isActive: boolean;
 }
 
-const NavButton: React.FC<NavButtonProps> = ({ label, href, isActive }) => {
+export const NavButton: React.FC<NavButtonProps> = ({
+  label,
+  href,
+  isActive,
+}) => {
   return (
     <Button
       variant={"outline"}
@@ -21,5 +25,3 @@ const NavButton: React.FC<NavButtonProps> = ({ label, href, isActive }) => {
     </Button>
   );
 };
-
-export default NavButton;

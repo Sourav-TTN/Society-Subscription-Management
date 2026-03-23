@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "../db/index.js";
-import { validateUuid } from "../lib/utils.js";
+import { getLastDateOfPreviousMonth, validateUuid } from "../lib/utils.js";
 import {
   flatTypesTable,
   societiesTable,
@@ -24,6 +24,7 @@ async function getAllFlatTypesHanlder(req: Request, res: Response) {
     societyId = validationResult.data.id;
 
     const currentDate = new Date();
+    const lastMonthDate = getLastDateOfPreviousMonth(currentDate);
 
     const flatTypesResult = await db.execute(sql`
       select 
@@ -34,7 +35,7 @@ async function getAllFlatTypesHanlder(req: Request, res: Response) {
       f.updated_at as "updatedAt"
       from ${flatTypesTable} f
       join ${subscriptionsTable} s on s.flat_type_id = f.flat_type_id
-      where f.society_id = ${societyId} and s.effective_from <= ${currentDate}
+      where f.society_id = ${societyId} and s.effective_from > ${lastMonthDate} and s.effective_from <= ${currentDate}
     `);
 
     const flatTypes = flatTypesResult.rows;

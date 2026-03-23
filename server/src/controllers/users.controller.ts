@@ -225,7 +225,7 @@ async function logoutUserHandler(req: Request, res: Response) {
 
     const userAuthToken = setUser(user, 0);
 
-    console.log("Resident Token:", userAuthToken);
+    // console.log("Resident Token:", userAuthToken);
 
     res.cookie("resident-auth-token", userAuthToken, {
       httpOnly: true,

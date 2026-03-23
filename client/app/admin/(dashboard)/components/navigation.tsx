@@ -1,8 +1,14 @@
 "use client";
-import NavButton from "./nav-button";
-import { usePathname, useRouter } from "next/navigation";
-import { useMedia } from "react-use";
+
 import { useState } from "react";
+import { Menu } from "lucide-react";
+import { useMedia } from "react-use";
+import { NavButton } from "./nav-button";
+import { Button } from "@/components/button";
+import { DialogTitle } from "@/components/dialog";
+import { usePathname, useRouter } from "next/navigation";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/sheet";
 
 const routes = [
   {
@@ -39,7 +45,7 @@ const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const isMobile = useMedia("(max-width: 1024px)", false);
+  const isMobile = useMedia("(max-width: 1150px)", false);
 
   const onClick = (href: string) => {
     router.push(href);
@@ -47,7 +53,37 @@ const Navigation = () => {
   };
 
   if (isMobile) {
-    return null;
+    return (
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger>
+          <Button
+            asChild
+            size="md"
+            variant={"outline"}
+            className="w-full lg:w-auto justify-between bg-white/10 text-white font-normal hover:bg-white/20 hover:text-white border-none focus-visible:ring-offset-0 focus-visible:ring-transparent outline-none focus:bg-white/30 transition py-1.5"
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side={"left"} className="px-2">
+          <VisuallyHidden>
+            <DialogTitle>Navigation Menu</DialogTitle>
+          </VisuallyHidden>
+          <nav className="pt-12 flex flex-col gap-y-3">
+            {routes.map((route) => (
+              <Button
+                key={route.href}
+                onClick={() => onClick(route.href)}
+                variant={pathname == route.href ? "secondary" : "ghost"}
+                className="justify-start"
+              >
+                {route.label}
+              </Button>
+            ))}
+          </nav>
+        </SheetContent>
+      </Sheet>
+    );
   }
 
   return (
