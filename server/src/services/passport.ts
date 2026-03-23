@@ -48,21 +48,21 @@ function configurePassport() {
   );
 }
 
-passport.serializeUser((user: any, callback) => {
-  callback(null, user.adminId);
-});
+// passport.serializeUser((user: any, callback) => {
+//   callback(null, user.adminId);
+// });
 
-passport.deserializeUser(async (id: string, callback) => {
-  try {
-    const [admin] = await db
-      .select()
-      .from(adminsTable)
-      .where(eq(adminsTable.adminId, id));
+// passport.deserializeUser(async (id: string, callback) => {
+//   try {
+//     const [admin] = await db
+//       .select()
+//       .from(adminsTable)
+//       .where(eq(adminsTable.adminId, id));
 
-    callback(null, admin);
-  } catch (error) {
-    callback(error, null);
-  }
-});
+//     callback(null, admin);
+//   } catch (error) {
+//     callback(error, null);
+//   }
+// });
 
 export { configurePassport };

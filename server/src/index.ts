@@ -2,7 +2,7 @@ import "dotenv/config";
 import cors from "cors";
 import express from "express";
 import passport from "passport";
-import session from "express-session";
+// import session from "express-session";
 import cookieParser from "cookie-parser";
 
 import { configurePassport } from "./services/passport.js";
@@ -35,18 +35,18 @@ const app = express();
 
 app.use(cookieParser());
 
-app.use(
-  session({
-    secret: process.env.EXPRESS_SESSION_SECRET!,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 3 * 24 * 60 * 60 * 1000,
-    },
-  }),
-);
+// app.use(
+//   session({
+//     secret: process.env.EXPRESS_SESSION_SECRET!,
+//     resave: false,
+//     saveUninitialized: false,
+//     cookie: {
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+//       maxAge: 3 * 24 * 60 * 60 * 1000,
+//     },
+//   }),
+// );
 
 app.use(
   cors({
@@ -59,7 +59,7 @@ app.use(
 
 app.use(express.json());
 app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
 
 app
