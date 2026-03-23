@@ -6,8 +6,14 @@ import session from "express-session";
 import cookieParser from "cookie-parser";
 
 import { configurePassport } from "./services/passport.js";
-import { getUserHandler } from "./controllers/users.controller.js";
+<<<<<<< Updated upstream
+=======
+import {
+  getUserHandler,
+  logoutUserHandler,
+} from "./controllers/users.controller.js";
 import { getUserMiddleware } from "./middlewares/user.middleware.js";
+>>>>>>> Stashed changes
 
 import authRoute from "./routes/auth.route.js";
 import flatRoute from "./routes/flat.route.js";
@@ -65,7 +71,8 @@ app
       .status(200)
       .json({ message: "API is working fine", success: true });
   })
-  .get("/api/users/get-user", getUserMiddleware, getUserHandler);
+  .get("/api/users/get-user", getUserMiddleware, getUserHandler)
+  .get("/api/users/logout", getUserMiddleware, logoutUserHandler);
 
 app.use("/auth", authRoute);
 app.use("/api/admin", adminRoute);

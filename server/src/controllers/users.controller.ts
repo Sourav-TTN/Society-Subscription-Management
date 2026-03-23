@@ -168,14 +168,12 @@ async function loginUserHandler(req: Request, res: Response) {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return res
-      .status(200)
-      .json({
-        message: "User logged in successfully",
-        user,
-        society,
-        success: true,
-      });
+    return res.status(200).json({
+      message: "User logged in successfully",
+      user,
+      society,
+      success: true,
+    });
   } catch (error) {
     console.error("USER[LOGIN][POST]:", error);
     return res
@@ -221,9 +219,38 @@ async function getUserHandler(req: Request, res: Response) {
   }
 }
 
+async function logoutUserHandler(req: Request, res: Response) {
+  try {
+    const user = req.user as UserSelectType;
+
+    const userAuthToken = setUser(user, 0);
+
+    console.log("Resident Token:", userAuthToken);
+
+    res.cookie("resident-auth-token", userAuthToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV == "production",
+      sameSite: process.env.NODE_ENV == "production" ? "none" : "lax",
+      maxAge: 0,
+    });
+
+    return res.status(200).json({
+      message: "User logout successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.error("USER[LOGOUT][GET]:", error);
+    return res.status(500).json({
+      error: "Something went wrong",
+      success: false,
+    });
+  }
+}
+
 export {
   getUserHandler,
   loginUserHandler,
   createUserHandler,
   getAllUsersHandler,
+  logoutUserHandler,
 };

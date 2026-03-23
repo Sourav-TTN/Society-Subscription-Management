@@ -3,14 +3,14 @@ import type { AdminSelectType } from "../db/schema.js";
 
 const secretKey = process.env.JWT_SECRET_KEY!;
 
-const setAdmin = (admin: AdminSelectType) => {
+const setAdmin = (admin: AdminSelectType, expiresIn?: number) => {
   const token = jwt.sign(
     {
       id: admin.adminId,
       email: admin.email,
     },
     secretKey,
-    { expiresIn: 2 * 7 * 24 * 60 * 60 * 1000 },
+    { expiresIn: expiresIn || 2 * 7 * 24 * 60 * 60 * 1000 },
   );
 
   return token;
