@@ -8,11 +8,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { setSociety } from "@/store/slices/society-slice";
 import { setupForegroundListener } from "@/lib/foreground";
+import { updateNotification } from "@/store/slices/notification-slice";
 import { clearUser, setLoading, setUser } from "@/store/slices/user-slice";
 
 export const UserFetch = () => {
   const { loading } = useAppSelector((store) => store.userReducer);
   const dispatch = useAppDispatch();
+  const { gotNew } = useAppSelector((store) => store.notificationReducer);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -39,11 +41,15 @@ export const UserFetch = () => {
     getUser();
   }, []);
 
+  const updateNotifications = () => {
+    dispatch(updateNotification(!gotNew));
+  };
+
   useEffect(() => {
     const initializeForegroundListener = async () => {
       const messaging = await getMessagingSafe();
       if (messaging) {
-        setupForegroundListener(messaging);
+        setupForegroundListener(messaging, updateNotifications);
       }
     };
 
