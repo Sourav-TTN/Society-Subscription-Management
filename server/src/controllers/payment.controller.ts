@@ -31,6 +31,15 @@ async function createPaymentHandler(req: Request, res: Response) {
 
     const { billId, amount, paymentVia, paidAt } = validationResult.data;
 
+    const currentDate = new Date();
+
+    if (paidAt && currentDate < paidAt) {
+      return res.status(400).json({
+        error: "Can't make future payments.",
+        success: false,
+      });
+    }
+
     const columns = [sql`bill_id`, sql`amount`, sql`payment_via`];
     const values: (string | Date)[] = [billId, amount, paymentVia];
 

@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/table";
-import { formatDistanceToNow } from "date-fns";
+import { addMinutes, formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/button";
 import { Eye } from "lucide-react";
 import { Badge } from "@/components/badge";
@@ -69,9 +69,10 @@ export const NotificationList = ({
                   <p className="line-clamp-2">{notification.content}</p>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {formatDistanceToNow(new Date(notification.sentAt), {
-                    addSuffix: true,
-                  })}
+                  {formatDistanceToNow(
+                    addMinutes(new Date(notification.sentAt), 330),
+                    { addSuffix: true },
+                  )}
                 </TableCell>
                 <TableCell>
                   <Button

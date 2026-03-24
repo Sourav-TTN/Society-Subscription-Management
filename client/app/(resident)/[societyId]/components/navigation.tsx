@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import { useMedia } from "react-use";
 import { NavButton } from "./nav-button";
@@ -10,6 +10,7 @@ import { DialogTitle } from "@/components/dialog";
 import { usePathname, useRouter } from "next/navigation";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/sheet";
+import { requestPermission } from "@/lib/firebase";
 
 const routes = [
   {
@@ -36,11 +37,26 @@ const Navigation = () => {
   const pathname = usePathname();
   const router = useRouter();
   const isMobile = useMedia("(max-width: 1024px)", false);
+  const { society } = useAppSelector((store) => store.societyReducer);
 
   const onClick = (href: string) => {
     router.push(href);
     setIsOpen(false);
   };
+
+  useEffect(() => {
+    const getPermission = () => {
+      if (!society || !user) return;
+      const alreadyAsked = localStorage.getItem("already-asked");
+
+      if (!alreadyAsked) {
+        requestPermission(society?.societyId, user?.userId);
+        localStorage.setItem("already-asked", "true");
+      }
+    };
+
+    getPermission();
+  }, []);
 
   if (isMobile) {
     return (
