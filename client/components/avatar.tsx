@@ -49,7 +49,9 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
         console.log(res.data);
       }
       toast.success("Logged out successfully");
-      router.push("/sign-in");
+      if (pathname.startsWith("/admin")) {
+        router.push("/admin/login");
+      } else router.push("/sign-in");
     } catch (error) {
       console.error(error);
     }

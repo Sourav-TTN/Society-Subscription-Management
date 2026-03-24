@@ -27,7 +27,8 @@ export const FetchAdmin = () => {
         dispatch(setSociety({ society: response.data.society }));
       } catch (error) {
         dispatch(clearAdmin());
-        router.push("/admin/login");
+        router.replace("/admin/login");
+        router.refresh();
       } finally {
         dispatch(setLoading(false));
       }

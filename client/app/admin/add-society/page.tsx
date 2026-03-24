@@ -37,7 +37,8 @@ const AddSocietyPage = () => {
 
   useEffect(() => {
     if (admin?.societyId) {
-      router.push("/admin/dashboard");
+      router.replace("/admin/dashboard");
+      router.refresh();
     }
   }, [loading]);
 
@@ -73,7 +74,8 @@ const AddSocietyPage = () => {
         pin: parseInt(pin),
       });
 
-      router.push("/admin/dashboard");
+      router.replace("/admin/dashboard");
+      router.refresh();
     } catch (error: any) {
       console.log(error);
       setError(error.response?.data?.error || "Failed to add society");

@@ -83,7 +83,7 @@ const AuthForm = () => {
 
       toast.success(response.data.message || "Signed in successfully!");
       let society = response.data.society;
-      router.push(`${society.societyId}/dashboard`);
+      router.replace(`${society.societyId}/dashboard`);
       router.refresh();
     } catch (error: any) {
       console.error("Sign-in error:", error);

@@ -28,7 +28,8 @@ export const UserFetch = () => {
         dispatch(setSociety({ society: response.data.society }));
 
         if (pathname == "/sign-in" || pathname == "/sign-up") {
-          router.push(`/${society.societyId}/dashboard`);
+          router.replace(`/${society.societyId}/dashboard`);
+          router.refresh();
         }
       } catch (error) {
         dispatch(clearUser());

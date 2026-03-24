@@ -13,7 +13,10 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     if (admin && !admin.societyId) router.push("/admin/add-society");
-    if (admin) router.push("/admin/dashboard");
+    if (admin) {
+      router.replace("/admin/dashboard");
+      router.refresh();
+    }
   }, [loading]);
 
   return (
