@@ -56,14 +56,7 @@ export const NotificationList = ({
                 className={isUnread ? "bg-muted/50" : undefined}
               >
                 <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    {notification.title}
-                    {isUnread && (
-                      <Badge variant="secondary" className="text-xs">
-                        New
-                      </Badge>
-                    )}
-                  </div>
+                  {notification.title}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   <p className="line-clamp-2">{notification.content}</p>

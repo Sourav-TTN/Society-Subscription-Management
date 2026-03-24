@@ -26,6 +26,10 @@ export const requestPermission = async (societyId: string, userId: string) => {
 
   const permission = await Notification.requestPermission();
 
+  if (permission != "default") {
+    localStorage.setItem("already-asked", "true");
+  }
+
   if (permission === "granted") {
     const token = await getToken(messagingInstance, {
       vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,

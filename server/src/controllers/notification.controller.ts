@@ -224,22 +224,26 @@ async function getUserNotificationHistoryHandler(req: Request, res: Response) {
       sentAt: Date;
     };
 
-    const notificationRecipientsResult =
-      await db.execute<NotificationRecipientResultsType>(sql`
+    let notifications: NotificationRecipientResultsType[] = [];
+
+    if (flatRecipients.length > 0) {
+      const notificationRecipientsResult =
+        await db.execute<NotificationRecipientResultsType>(sql`
       select
-        nr.notification_recipient_id as "notificationRecipientId",
-        nr.notification_id as "notificationId",
-        nr.flat_recipient_id as "flatRecipientId",
-        n.title as "title",
-        n.content as "content",
-        n.sent_at as "sentAt"
+      nr.notification_recipient_id as "notificationRecipientId",
+      nr.notification_id as "notificationId",
+      nr.flat_recipient_id as "flatRecipientId",
+      n.title as "title",
+      n.content as "content",
+      n.sent_at as "sentAt"
       from ${notificationRecipientsTable} nr
       join ${notificationsTable} n on nr.notification_id = n.notification_id
       where nr.flat_recipient_id in ${flatRecipients.map((fr) => fr.flatRecipientId)}
       order by n.sent_at desc;
-    `);
+      `);
 
-    const notifications = notificationRecipientsResult.rows;
+      notifications = notificationRecipientsResult.rows;
+    }
 
     return res.status(200).json({
       success: true,

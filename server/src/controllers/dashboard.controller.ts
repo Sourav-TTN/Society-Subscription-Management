@@ -8,6 +8,7 @@ import {
   flatRecipientsTable,
   type UserSelectType,
 } from "../db/schema.js";
+import { z } from "zod";
 import { sql } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { validateUuid } from "../lib/utils.js";
@@ -31,53 +32,73 @@ const MONTH_NAMES = [
 async function getMonthlyCollectionTrendsHandler(req: Request, res: Response) {
   try {
     const { societyId } = req.society;
-    const { year } = req.query;
 
-    const targetYear = year
-      ? parseInt(year as string)
-      : new Date().getFullYear();
+    const validationResult = z
+      .object({
+        year: z.coerce.number().int().min(1000).max(9999).optional(),
+      })
+      .safeParse(req.query);
 
-    const monthlyData = await db.execute(sql`
-      SELECT 
-        b.month,
-        b.year,
-        COALESCE(SUM(CASE WHEN b.status = 'paid' THEN s.charges ELSE 0 END), 0) as collected,
-        COALESCE(SUM(s.charges), 0) as total_billed,
-        COUNT(CASE WHEN b.status = 'pending' THEN 1 END) as pending_count,
-        COUNT(CASE WHEN b.status = 'paid' THEN 1 END) as paid_count
-      FROM ${billsTable} b
-      JOIN ${subscriptionsTable} s ON s.subscription_id = b.subscription_id
-      WHERE b.year = ${targetYear}
-        AND EXISTS (
-          SELECT 1 FROM ${flatsTable} f
-          WHERE f.society_id = ${societyId}
-        )
-      GROUP BY b.month, b.year
-      ORDER BY b.month ASC
-    `);
+    if (validationResult.error) {
+      return res.status(400).json({
+        error: validationResult.error.message,
+        success: false,
+      });
+    }
 
-    const formattedData = (monthlyData.rows as any[]).map((row) => ({
+    let currentYear = new Date().getFullYear();
+    let { year = currentYear } = validationResult.data;
+
+    type MonthlyRow = {
+      month: number;
+      year: number;
+      collected: string | number;
+      totalBilled: string | number;
+      pendingCount: string | number;
+      paidCount: string | number;
+    };
+
+    const monthlyDataResults = await db.execute<MonthlyRow>(sql`
+      select
+        b.month as "month",
+        b.year as "year",
+        sum(case when b.status = 'paid' then s.charges else 0 end) as "collected",
+        sum(s.charges) as "totalBilled",
+        sum(case when b.status = 'pending' then s.charges else 0 end) as "pendingCount",
+        count(case when b.status = 'paid' then 1 end) as "paidCount"
+      from ${billsTable} b
+      join ${subscriptionsTable} s on s.subscription_id = b.subscription_id
+      join ${flatRecipientsTable} fr on fr.flat_recipient_id = b.flat_recipient_id
+      join ${flatsTable} f on f.flat_id = fr.flat_id
+      where f.society_id = ${societyId} and b.year = ${year}
+      group by b.year, b.month
+      order by b.month asc;
+      `);
+
+    const monthlyData = monthlyDataResults.rows;
+
+    const formattedData = monthlyData.map((row) => ({
       month: MONTH_NAMES[row.month - 1],
       monthNumber: row.month,
       collected: Number(row.collected),
-      totalBilled: Number(row.total_billed),
-      pendingCount: Number(row.pending_count),
-      paidCount: Number(row.paid_count),
+      totalBilled: Number(row.totalBilled),
+      pendingCount: Number(row.pendingCount),
+      paidCount: Number(row.paidCount),
       collectionRate:
-        Number(row.total_billed) > 0
-          ? (Number(row.collected) / Number(row.total_billed)) * 100
+        Number(row.totalBilled) > 0
+          ? (Number(row.collected) / Number(row.totalBilled)) * 100
           : 0,
     }));
 
     res.json({
       success: true,
       data: {
-        year: targetYear,
+        year,
         monthlyTrends: formattedData,
       },
     });
   } catch (error) {
-    console.error("MONTHLY_TRENDS[GET]:", error);
+    console.error("DASHBOARD[MONTHLY-TRENDS][GET]:", error);
     res.status(500).json({
       error: "Failed to fetch monthly trends",
       success: false,
@@ -91,38 +112,51 @@ async function getPaymentMethodDistributionHandler(
 ) {
   try {
     const { societyId } = req.society;
-    const { year, month } = req.query;
 
-    let yearCondition = sql``;
-    let monthCondition = sql``;
+    const validationResult = z
+      .object({
+        month: z.coerce.number().int().min(1).max(12).optional(),
+        year: z.coerce.number().int().min(1000).max(9999).optional(),
+      })
+      .safeParse(req.query);
 
-    if (year) {
-      yearCondition = sql`AND b.year = ${parseInt(year as string)}`;
+    if (validationResult.error) {
+      return res.status(400).json({
+        error: validationResult.error.message,
+        success: false,
+      });
     }
-    if (month) {
-      monthCondition = sql`AND b.month = ${parseInt(month as string)}`;
-    }
 
-    const paymentMethodsData = await db.execute(sql`
-      SELECT 
-        p.payment_via,
-        COALESCE(SUM(p.amount), 0) as total_amount,
-        COUNT(p.payment_id) as transaction_count
-      FROM ${paymentsTable} p
-      JOIN ${billsTable} b ON b.bill_id = p.bill_id
-      WHERE EXISTS (
-        SELECT 1 FROM ${flatsTable} f
-        WHERE f.society_id = ${societyId}
-      )
-      ${yearCondition}
-      ${monthCondition}
-      GROUP BY p.payment_via
+    let currentYear = new Date().getFullYear();
+
+    let { year = currentYear, month } = validationResult.data;
+
+    type PaymentMethodRow = {
+      paymentVia: string;
+      totalAmount: string | number;
+      transactionCount: string | number;
+    };
+
+    const paymentMethodsDataResults = await db.execute<PaymentMethodRow>(sql`
+      select
+        p.payment_via as "paymentVia",
+        sum(p.amount) as "totalAmount",
+        count(p.payment_id) as "transactionCount"
+      from ${paymentsTable} p
+      join ${billsTable} b on b.bill_id = p.bill_id
+      join ${flatRecipientsTable} fr on fr.flat_recipient_id = b.flat_recipient_id
+      join ${flatsTable} f on f.flat_id = fr.flat_id
+      where f.society_id = ${societyId} and b.year = ${year}
+      ${month && sql` and b.month = ${month}`}
+      group by p.payment_via;
     `);
 
-    const formattedData = (paymentMethodsData.rows as any[]).map((row) => ({
-      method: row.payment_via?.toUpperCase() || "UNKNOWN",
-      amount: Number(row.total_amount),
-      count: Number(row.transaction_count),
+    const paymentMethodsData = paymentMethodsDataResults.rows;
+
+    const formattedData = paymentMethodsData.map((row) => ({
+      method: row.paymentVia.toUpperCase() || "UNKNOWN",
+      amount: Number(row.totalAmount),
+      count: Number(row.transactionCount),
     }));
 
     const totalAmount = formattedData.reduce(
@@ -139,15 +173,15 @@ async function getPaymentMethodDistributionHandler(
       success: true,
       data: {
         period: {
-          year: year ? parseInt(year as string) : "all",
-          month: month ? parseInt(month as string) : "all",
+          year: year ? year : "all",
+          month: month ? month : "all",
         },
         distribution: dataWithPercentage,
         totalAmount,
       },
     });
   } catch (error) {
-    console.error("PAYMENT_METHODS[GET]:", error);
+    console.error("DASHBOARD[PAYMENT-METHODS][GET]:", error);
     res.status(500).json({
       error: "Failed to fetch payment method distribution",
       success: false,
@@ -158,35 +192,58 @@ async function getPaymentMethodDistributionHandler(
 async function getRevenueVsOutstandingHandler(req: Request, res: Response) {
   try {
     const { societyId } = req.society;
-    const { year } = req.query;
 
-    const targetYear = year
-      ? parseInt(year as string)
-      : new Date().getFullYear();
+    const validationResult = z
+      .object({
+        month: z.coerce.number().int().min(1).max(12).optional(),
+        year: z.coerce.number().int().min(1000).max(9999).optional(),
+      })
+      .safeParse(req.query);
 
-    const monthlyComparison = await db.execute(sql`
-      SELECT 
-        b.month,
-        COALESCE(SUM(CASE WHEN b.status = 'paid' THEN s.charges ELSE 0 END), 0) as revenue,
-        COALESCE(SUM(CASE WHEN b.status = 'pending' THEN s.charges ELSE 0 END), 0) as outstanding,
-        COALESCE(SUM(s.charges), 0) as total_billed
-      FROM ${billsTable} b
-      JOIN ${subscriptionsTable} s ON s.subscription_id = b.subscription_id
-      WHERE b.year = ${targetYear}
-        AND EXISTS (
-          SELECT 1 FROM ${flatsTable} f
-          WHERE f.society_id = ${societyId}
-        )
-      GROUP BY b.month
-      ORDER BY b.month ASC
+    if (validationResult.error) {
+      return res.status(400).json({
+        error: validationResult.error.message,
+        success: false,
+      });
+    }
+
+    let currentYear = new Date().getFullYear();
+
+    let { year = currentYear, month } = validationResult.data;
+
+    type RevenueVsOutstandingRow = {
+      month: number;
+      year: number;
+      revenue: string | number;
+      outstanding: string | number;
+      totalBilled: string | number;
+    };
+
+    const monthlyComparisonResults =
+      await db.execute<RevenueVsOutstandingRow>(sql`
+        select
+          b.month as "month",
+          b.year as "year",
+          sum(case when b.status = 'paid' then s.charges else 0 end) as "revenue",
+          sum(case when b.status = 'pending' then s.charges else 0 end) as "outstanding",
+          sum(s.charges) as "totalBilled"
+        from ${billsTable} b
+        join ${subscriptionsTable} s on s.subscription_id = b.subscription_id
+        join ${flatRecipientsTable} fr on fr.flat_recipient_id = b.flat_recipient_id
+        join ${flatsTable} f on f.flat_id = fr.flat_id
+        where f.society_id = ${societyId} and b.year = ${year} ${month && sql`and b.month = ${month}`}
+        group by b.year, b.month
+        order by b.month asc;
     `);
 
-    const formattedData = (monthlyComparison.rows as any[]).map((row) => ({
+    const monthlyComparisonData = monthlyComparisonResults.rows;
+
+    const formattedData = monthlyComparisonData.map((row) => ({
       month: MONTH_NAMES[row.month - 1],
       monthNumber: row.month,
       revenue: Number(row.revenue),
       outstanding: Number(row.outstanding),
-      totalBilled: Number(row.total_billed),
+      totalBilled: Number(row.totalBilled),
     }));
 
     const yearlyTotal = formattedData.reduce(
@@ -200,13 +257,13 @@ async function getRevenueVsOutstandingHandler(req: Request, res: Response) {
     res.json({
       success: true,
       data: {
-        year: targetYear,
+        year,
         monthlyData: formattedData,
         yearlySummary: yearlyTotal,
       },
     });
   } catch (error) {
-    console.error("REVENUE_OUTSTANDING[GET]:", error);
+    console.error("DASHBOARD[REVENUE-OUTSTANDING][GET]:", error);
     res.status(500).json({
       error: "Failed to fetch revenue vs outstanding data",
       success: false,
@@ -217,126 +274,88 @@ async function getRevenueVsOutstandingHandler(req: Request, res: Response) {
 async function getCompleteDashboardDataHandler(req: Request, res: Response) {
   try {
     const { societyId } = req.society;
-    const { year, month } = req.query;
 
-    const targetYear = year
-      ? parseInt(year as string)
-      : new Date().getFullYear();
+    const validationResult = z
+      .object({
+        month: z.coerce.number().int().min(1).max(12).optional(),
+        year: z.coerce.number().int().min(1000).max(9999).optional(),
+      })
+      .safeParse(req.query);
 
-    const [
-      overviewResult,
-      monthlyTrendsResult,
-      paymentMethodsResult,
-      topPendingResult,
-    ] = await Promise.allSettled([
-      db.execute(sql`
-        SELECT 
-          COALESCE(SUM(CASE WHEN b.status = 'paid' THEN s.charges ELSE 0 END), 0) as total_collected,
-          COALESCE(SUM(CASE WHEN b.status = 'pending' THEN s.charges ELSE 0 END), 0) as total_pending,
-          COUNT(CASE WHEN b.status = 'pending' THEN 1 END) as pending_bills_count,
-          COUNT(CASE WHEN b.status = 'paid' THEN 1 END) as paid_bills_count,
-          COUNT(DISTINCT b.flat_recipient_id) as total_flats_with_bills
-        FROM ${billsTable} b
-        JOIN ${subscriptionsTable} s ON s.subscription_id = b.subscription_id
-        WHERE b.year = ${targetYear}
-      `),
+    if (validationResult.error) {
+      return res.status(400).json({
+        error: validationResult.error.message,
+        success: false,
+      });
+    }
 
-      db.execute(sql`
-        SELECT 
-          b.month,
-          COALESCE(SUM(CASE WHEN b.status = 'paid' THEN s.charges ELSE 0 END), 0) as collected,
-          COALESCE(SUM(s.charges), 0) as total_billed
-        FROM ${billsTable} b
-        JOIN ${subscriptionsTable} s ON s.subscription_id = b.subscription_id
-        WHERE b.year = ${targetYear}
-        GROUP BY b.month
-        ORDER BY b.month ASC
-      `),
+    let currentYear = new Date().getFullYear();
 
-      db.execute(sql`
-        SELECT 
-          p.payment_via,
-          COALESCE(SUM(p.amount), 0) as total_amount
-        FROM ${paymentsTable} p
-        JOIN ${billsTable} b ON b.bill_id = p.bill_id
-        WHERE b.year = ${targetYear}
-        GROUP BY p.payment_via
-      `),
+    let { year = currentYear, month } = validationResult.data;
 
-      db.execute(sql`
-        SELECT 
-          concat(f.flat_number, ', ', f.flat_floor, ', ', f.flat_block) as flat_address,
-          COALESCE(SUM(s.charges), 0) as total_pending_amount
-        FROM ${billsTable} b
-        JOIN ${subscriptionsTable} s ON s.subscription_id = b.subscription_id
-        JOIN ${flatsTable} f ON EXISTS (
-          SELECT 1 FROM flat_recipients fr 
-          WHERE fr.flat_recipient_id = b.flat_recipient_id 
-          AND fr.flat_id = f.flat_id
-        )
-        WHERE b.status = 'pending' AND b.year = ${targetYear}
-        GROUP BY f.flat_id, f.flat_number, f.flat_floor, f.flat_block
-        ORDER BY total_pending_amount DESC
-        LIMIT 5
-      `),
-    ]);
+    type OverviewRow = {
+      totalCollected: string | number;
+      totalPending: string | number;
+      paidBillsCount: string | number;
+      pendingBillsCount: string | number;
+    };
 
-    const overview =
-      overviewResult.status === "fulfilled"
-        ? overviewResult.value.rows[0]
-        : null;
-    const monthlyTrends =
-      monthlyTrendsResult.status === "fulfilled"
-        ? monthlyTrendsResult.value.rows
-        : [];
-    const paymentMethods =
-      paymentMethodsResult.status === "fulfilled"
-        ? paymentMethodsResult.value.rows
-        : [];
-    const topPendingFlats =
-      topPendingResult.status === "fulfilled"
-        ? topPendingResult.value.rows
-        : [];
+    const overviewResult = await db.execute<OverviewRow>(sql`
+      select
+        sum(case when b.status = 'paid' then s.charges else 0 end) as "totalCollected",
+        sum(case when b.status = 'pending' then s.charges else 0 end) as "totalPending",
+        count(case when b.status = 'paid' then 1 end) as "paidBillsCount",
+        count(case when b.status = 'pending' then 1 end) as "pendingBillsCount"
+      from ${billsTable} b
+      join ${subscriptionsTable} s on s.subscription_id = b.subscription_id
+      join ${flatRecipientsTable} fr on fr.flat_recipient_id = b.flat_recipient_id
+      join ${flatsTable} f on f.flat_id = fr.flat_id
+      where f.society_id = ${societyId}
+        and b.year = ${year}
+        ${month ? sql`and b.month = ${month}` : sql``}
+    `);
 
-    const totalCollected = Number((overview as any)?.total_collected || 0);
-    const totalPending = Number((overview as any)?.total_pending || 0);
+    const overview = overviewResult.rows[0];
+
+    const totalCollected = Number(overview?.totalCollected || 0);
+    const totalPending = Number(overview?.totalPending || 0);
     const collectionRate =
       totalCollected + totalPending > 0
         ? (totalCollected / (totalCollected + totalPending)) * 100
         : 0;
+    const pendingBillsCount = Number(overview?.pendingBillsCount || 0);
+    const paidBillsCount = Number(overview?.paidBillsCount || 0);
+
+    type ActiveFlatsRow = {
+      activeFlats: string | number;
+    };
+
+    const activeFlatsResult = await db.execute<ActiveFlatsRow>(sql`
+      select count(*) as "activeFlats"
+      from ${flatRecipientsTable} fr
+      join ${flatsTable} f on f.flat_id = fr.flat_id
+      where f.society_id = ${societyId} and fr.is_current_owner = ${true} 
+      and extract(year from f.created_at) = ${year};
+    `);
+
+    const activeFlatsRow = activeFlatsResult.rows[0];
+    const activeFlats = Number(activeFlatsRow?.activeFlats ?? 0);
 
     res.json({
       success: true,
       data: {
         overview: {
-          totalCollected,
+          activeFlats,
           totalPending,
-          pendingBillsCount: Number(
-            (overview as any)?.pending_bills_count || 0,
-          ),
-          paidBillsCount: Number((overview as any)?.paid_bills_count || 0),
-          totalFlatsWithBills: Number(
-            (overview as any)?.total_flats_with_bills || 0,
-          ),
-          collectionRate: Math.round(collectionRate * 100) / 100,
+          totalCollected,
+          paidBillsCount,
+          collectionRate,
+          pendingBillsCount,
         },
-        monthlyTrends: (monthlyTrends as any[]).map((row) => ({
-          month: MONTH_NAMES[row.month - 1],
-          collected: Number(row.collected),
-          totalBilled: Number(row.total_billed),
-        })),
-        paymentMethods: (paymentMethods as any[]).map((row) => ({
-          method: row.payment_via?.toUpperCase() || "UNKNOWN",
-          amount: Number(row.total_amount),
-        })),
-        topPendingFlats: (topPendingFlats as any[]).map((row) => ({
-          flat: row.flat_address,
-          amount: Number(row.total_pending_amount),
-        })),
       },
     });
   } catch (error) {
-    console.error("COMPLETE_DASHBOARD[GET]:", error);
+    console.error("DASHBOARD[COMPLETE-DATA][GET]:", error);
     res.status(500).json({
       error: "Failed to fetch complete dashboard data",
       success: false,

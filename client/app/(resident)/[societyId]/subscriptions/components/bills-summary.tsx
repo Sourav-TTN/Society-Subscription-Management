@@ -24,7 +24,7 @@ export const BillsSummary = ({ bills }: BillsSummaryProps) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 border-orange-200 dark:border-orange-800">
+      <Card className="bg-linear-to-br from-yellow-50 to-yellow-100 dark:from-orange-950/20 dark:to-orange-900/20 border-orange-200 dark:border-orange-800">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Pending Amount
@@ -44,7 +44,7 @@ export const BillsSummary = ({ bills }: BillsSummaryProps) => {
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200 dark:border-green-800">
+      <Card className="bg-linear-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200 dark:border-green-800">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Total Paid

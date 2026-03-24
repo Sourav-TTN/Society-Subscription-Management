@@ -37,6 +37,7 @@ import {
   LineChart,
   CircleDollarSign,
   Target,
+  IndianRupee,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
@@ -47,9 +48,8 @@ interface DashboardOverview {
   totalPending: number;
   pendingBillsCount: number;
   paidBillsCount: number;
-  totalFlatsWithBills: number;
+  activeFlats: number;
   collectionRate: number;
-  yearOverYearGrowth?: number;
 }
 
 interface MonthlyTrend {
@@ -105,32 +105,6 @@ interface ApiResponse<T> {
   error?: string;
   message?: string;
 }
-
-const DashboardSkeleton = () => {
-  return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-4 w-48 mt-2" />
-        </div>
-        <div className="flex gap-3">
-          <Skeleton className="h-10 w-32" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <Skeleton key={i} className="h-32 w-full" />
-        ))}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Skeleton className="h-[400px] w-full" />
-        <Skeleton className="h-[400px] w-full" />
-      </div>
-    </div>
-  );
-};
 
 export const AdminDashboardClientPage = () => {
   const { admin } = useAppSelector((store) => store.adminReducer);
@@ -220,7 +194,7 @@ export const AdminDashboardClientPage = () => {
     try {
       setLoading(true);
       const res = await axiosIns.get<ApiResponse<RevenueOutstandingData>>(
-        `/api/society/${society.societyId}/dashboard/revenue-vs-outstanding?year=${selectedYear}`,
+        `/api/society/${society.societyId}/dashboard/revenue-vs-outstanding?year=${selectedYear}${selectedMonth ? `&month=${selectedMonth}` : ""}`,
       );
       if (res.data.success) {
         setRevenueOutstanding(res.data.data);
@@ -347,30 +321,9 @@ export const AdminDashboardClientPage = () => {
                     <p className="text-2xl font-bold text-gray-900 mt-2">
                       {formatCurrency(completeData.overview.totalCollected)}
                     </p>
-                    {completeData.overview.yearOverYearGrowth && (
-                      <div className="flex items-center gap-1 mt-2">
-                        {completeData.overview.yearOverYearGrowth >= 0 ? (
-                          <TrendingUp className="h-3 w-3 text-emerald-600" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-red-600" />
-                        )}
-                        <span
-                          className={`text-xs font-medium ${
-                            completeData.overview.yearOverYearGrowth >= 0
-                              ? "text-emerald-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {Math.abs(
-                            completeData.overview.yearOverYearGrowth,
-                          ).toFixed(1)}
-                          % from last year
-                        </span>
-                      </div>
-                    )}
                   </div>
                   <div className="h-12 w-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <DollarSign className="h-6 w-6 text-emerald-600" />
+                    <IndianRupee className="h-6 w-6 text-emerald-600" />
                   </div>
                 </div>
               </CardContent>
@@ -429,7 +382,7 @@ export const AdminDashboardClientPage = () => {
                       Active Flats
                     </p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
-                      {completeData.overview.totalFlatsWithBills}
+                      {completeData.overview.activeFlats}
                     </p>
                     <p className="text-xs text-gray-500 mt-2">
                       {completeData.overview.paidBillsCount} paid /{" "}

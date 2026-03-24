@@ -586,7 +586,11 @@ async function getAllUserBillsHandler(req: Request, res: Response) {
         .json({ error: filterValidationResult.error.message, success: false });
     }
 
-    const { month, year } = filterValidationResult.data;
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    const { month = currentMonth, year = currentMonth } =
+      filterValidationResult.data;
 
     type UserBillResultType = BillResultType & {
       from: Date;
@@ -622,8 +626,7 @@ async function getAllUserBillsHandler(req: Request, res: Response) {
       join ${flatsTable} f on f.flat_id = fr.flat_id
       where fr.owner_id = ${userId}
         and f.society_id = ${societyId}
-        ${month !== undefined ? sql` and b.month = ${month}` : sql``}
-        ${year !== undefined ? sql` and b.year = ${year}` : sql``}
+        and ((b.month = ${month} and b.year = ${year}) or b.status = 'pending')
       order by b.year desc, b.month desc
     `);
 

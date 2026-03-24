@@ -32,11 +32,11 @@ const routes = [
 ];
 
 const Navigation = () => {
-  const { user } = useAppSelector((store) => store.userReducer);
-  const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
   const router = useRouter();
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
   const isMobile = useMedia("(max-width: 1024px)", false);
+  const { user } = useAppSelector((store) => store.userReducer);
   const { society } = useAppSelector((store) => store.societyReducer);
 
   const onClick = (href: string) => {
@@ -51,7 +51,6 @@ const Navigation = () => {
 
       if (!alreadyAsked) {
         requestPermission(society?.societyId, user?.userId);
-        localStorage.setItem("already-asked", "true");
       }
     };
 
@@ -98,10 +97,10 @@ const Navigation = () => {
         <NavButton
           key={route.href}
           href={
-            user?.email ? `/${user.userId}/${route.href}` : `/${route.href}`
+            society ? `/${society?.societyId}/${route.href}` : `/${route.href}`
           }
           label={route.label}
-          isActive={pathname === `/${user?.userId}/${route.href}`}
+          isActive={pathname === `/${society?.societyId}/${route.href}`}
         />
       ))}
     </nav>
