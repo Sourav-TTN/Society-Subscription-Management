@@ -1,11 +1,12 @@
 import admin, { type ServiceAccount } from "firebase-admin";
 
-const raw = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT as string);
-
 const serviceAccount: ServiceAccount = {
-  projectId: raw.project_id,
-  clientEmail: raw.client_email,
-  privateKey: raw.private_key.replace(/\\n/g, "\n"),
+  projectId: process.env.FIREBASE_PROJECT_ID as string,
+  clientEmail: process.env.FIREBASE_CLIENT_EMAIL as string,
+  privateKey: (process.env.FIREBASE_PRIVATE_KEY as string).replace(
+    /\\n/g,
+    "\n",
+  ),
 };
 
 if (!admin.apps.length) {
