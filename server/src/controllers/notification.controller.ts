@@ -97,13 +97,19 @@ async function sendNotificationHandler(req: Request, res: Response) {
 
     // console.log(tokens);
 
-    await admin.messaging().sendEachForMulticast({
-      notification: {
-        title,
-        body: content,
-      },
-      tokens,
-    });
+    try {
+      if (tokens.length > 0) {
+        await admin.messaging().sendEachForMulticast({
+          notification: {
+            title,
+            body: content,
+          },
+          tokens,
+        });
+      }
+    } catch (error) {
+      console.error("FIREBASE[SENT-NOTIFICATION][POST]:", error);
+    }
 
     return res.status(200).json({
       success: true,
