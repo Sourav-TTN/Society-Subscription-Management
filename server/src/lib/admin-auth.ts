@@ -10,7 +10,7 @@ const setAdmin = (admin: AdminSelectType, expiresIn?: number) => {
       email: admin.email,
     },
     secretKey,
-    { expiresIn: expiresIn || 2 * 7 * 24 * 60 * 60 * 1000 },
+    { expiresIn: expiresIn || 2 * 7 * 24 * 60 * 60 },
   );
 
   return token;

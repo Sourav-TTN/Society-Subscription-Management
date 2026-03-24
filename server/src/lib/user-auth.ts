@@ -11,7 +11,7 @@ const setUser = (user: UserSelectType, expiresIn?: number) => {
       societyId: user.societyId,
     },
     secretKey,
-    { expiresIn: expiresIn || 2 * 7 * 24 * 60 * 60 * 1000 },
+    { expiresIn: expiresIn || 2 * 7 * 24 * 60 * 60 },
   );
   return token;
 };

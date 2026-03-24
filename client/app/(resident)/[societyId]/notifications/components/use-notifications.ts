@@ -16,6 +16,7 @@ export type NotificationRecipientResultsType = {
 export const useNotifications = () => {
   const { user } = useAppSelector((store) => store.userReducer);
   const { society } = useAppSelector((store) => store.societyReducer);
+  const { gotNew } = useAppSelector((store) => store.notificationReducer);
 
   const [notifications, setNotifications] = useState<
     NotificationRecipientResultsType[]
@@ -44,7 +45,7 @@ export const useNotifications = () => {
 
   useEffect(() => {
     fetchNotifications();
-  }, [society, user]);
+  }, [society, user, gotNew]);
 
   const getUnreadCount = () => {
     return notifications.filter(
