@@ -53,7 +53,6 @@ app.use(
     origin: process.env.CLIENT_URL,
     methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
     credentials: true,
-    preflightContinue: true,
   }),
 );
 
