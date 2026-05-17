@@ -1,14 +1,8 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "../db/index.js";
-import { getLastDateOfPreviousMonth, validateUuid } from "../lib/utils.js";
-import {
-  flatTypesTable,
-  societiesTable,
-  subscriptionsTable,
-  type FlatTypeSelectType,
-  type SubscriptionSelectType,
-} from "../db/schema.js";
+import { validateUuid } from "../lib/utils.js";
 import type { Request, Response } from "express";
+import { flatTypesTable, subscriptionsTable } from "../db/schema.js";
 
 async function getAllFlatTypesHanlder(req: Request, res: Response) {
   try {
@@ -24,18 +18,25 @@ async function getAllFlatTypesHanlder(req: Request, res: Response) {
     societyId = validationResult.data.id;
 
     const currentDate = new Date();
-    const lastMonthDate = getLastDateOfPreviousMonth(currentDate);
 
     const flatTypesResult = await db.execute(sql`
-      select 
-      f.flat_type_id as "flatTypeId",
-      f.society_id as "societyId",
-      f.size as "size",
-      f.created_at as "createdAt",
-      f.updated_at as "updatedAt"
+      select distinct on (f.flat_type_id)
+        f.flat_type_id as "flatTypeId",
+        f.society_id as "societyId",
+        f.size as "size",
+        f.created_at as "createdAt",
+        f.updated_at as "updatedAt",
+        s.subscription_id as "subscriptionId",
+        s.effective_from as "effectiveFrom"
       from ${flatTypesTable} f
-      join ${subscriptionsTable} s on s.flat_type_id = f.flat_type_id
-      where f.society_id = ${societyId} and s.effective_from > ${lastMonthDate} and s.effective_from <= ${currentDate}
+      join ${subscriptionsTable} s 
+        on s.flat_type_id = f.flat_type_id
+      where 
+        f.society_id = ${societyId}
+        and s.effective_from <= ${currentDate}
+      order by 
+        f.flat_type_id,
+        s.effective_from desc;
     `);
 
     const flatTypes = flatTypesResult.rows;
